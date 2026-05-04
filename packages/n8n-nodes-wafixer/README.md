@@ -24,9 +24,11 @@ n8n'i yeniden başlat. Node panelinde "WAFixer" ve "WAFixer Trigger" görünecek
 
 1. n8n → **Credentials** → **New** → **WAFixer API**
 2. **Base URL:** `https://wafixer.com` (kendi WAFixer URL'in)
-3. **API Key:** Panel → Ayarlar → API'den aldığın global key
+3. **API Key:** Panel → **Ayarlar → API Anahtarları** sekmesinden **Yeni Anahtar Oluştur** ile üretilen `wfx_...` ile başlayan anahtar
 4. **Test** butonuyla doğrula → ✓ yeşil
 5. **Save**
+
+> **Not:** Panel `wfx_` ön ekli kullanıcı anahtarlarını otomatik tanır. Anahtar bir kez gösterilir, kaybedersen yenisini üret.
 
 ## Node 1: WAFixer (Action)
 

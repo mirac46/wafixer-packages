@@ -1,6 +1,6 @@
 {
   "name": "wafixer-sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Official WAFixer TypeScript SDK — focused on WhatsApp message operations (send text, media, audio, buttons, list, location, contact, reaction, poll, presence, mark as read).",
   "keywords": [
     "wafixer",
