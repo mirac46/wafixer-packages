@@ -1,0 +1,67 @@
+{
+  "name": "n8n-nodes-wafixer",
+  "version": "0.1.0",
+  "description": "n8n community nodes for WAFixer — send WhatsApp messages, listen for incoming messages, react to webhooks. Powered by wafixer-sdk.",
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n",
+    "wafixer",
+    "whatsapp",
+    "messaging",
+    "baileys"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/mirac46/wafixer-packages#readme",
+  "author": {
+    "name": "mirac46"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mirac46/wafixer-packages.git",
+    "directory": "packages/n8n-nodes-wafixer"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && npm run build:icons",
+    "build:icons": "node scripts/copy-icons.js",
+    "clean": "rimraf dist",
+    "lint": "eslint nodes credentials --ext .ts",
+    "lint:fix": "eslint nodes credentials --ext .ts --fix",
+    "prepublishOnly": "npm run clean && npm run build && npm run lint"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/WafixerApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/Wafixer/Wafixer.node.js",
+      "dist/nodes/WafixerTrigger/WafixerTrigger.node.js"
+    ]
+  },
+  "dependencies": {
+    "wafixer-sdk": "^0.1.0"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-n8n-nodes-base": "^1.16.3",
+    "n8n-workflow": "^1.82.0",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=20.15"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
