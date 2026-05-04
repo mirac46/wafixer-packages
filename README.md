@@ -1,5 +1,10 @@
 # wafixer-packages
 
+[![CI](https://github.com/mirac46/wafixer-packages/actions/workflows/ci.yml/badge.svg)](https://github.com/mirac46/wafixer-packages/actions/workflows/ci.yml)
+[![Release](https://github.com/mirac46/wafixer-packages/actions/workflows/release.yml/badge.svg)](https://github.com/mirac46/wafixer-packages/actions/workflows/release.yml)
+[![npm wafixer-sdk](https://img.shields.io/npm/v/wafixer-sdk?label=wafixer-sdk)](https://www.npmjs.com/package/wafixer-sdk)
+[![npm n8n-nodes-wafixer](https://img.shields.io/npm/v/n8n-nodes-wafixer?label=n8n-nodes-wafixer)](https://www.npmjs.com/package/n8n-nodes-wafixer)
+
 WAFixer ekosistemi için resmi paket monorepo'su.
 
 ## Paketler
@@ -8,6 +13,21 @@ WAFixer ekosistemi için resmi paket monorepo'su.
 |---|---|---|
 | [`wafixer-sdk`](./packages/wafixer-sdk) | 0.1.0 | TypeScript SDK — herhangi bir Node.js projesinden mesaj gönderme |
 | [`n8n-nodes-wafixer`](./packages/n8n-nodes-wafixer) | 0.1.0 | n8n community nodes — drag-and-drop entegrasyon |
+
+## Yayın
+
+Tag bazlı **otomatik npm publish** — detaylar: [RELEASING.md](./RELEASING.md)
+
+```bash
+# yeni sürüm yayınlamak için:
+npm version patch -w wafixer-sdk
+npm version patch -w n8n-nodes-wafixer
+git add packages/*/package.json
+git commit -m "chore: release v0.1.1"
+git tag v0.1.1
+git push origin main --tags
+# → GitHub Actions npm'e otomatik publish eder
+```
 
 ## Geliştirme
 

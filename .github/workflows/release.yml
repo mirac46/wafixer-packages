@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags:
+      # v* push'larında çalışır: v0.1.0, v0.2.0, vb.
+      - 'v*'
+
+permissions:
+  contents: write
+  id-token: write   # npm provenance için OIDC
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint --workspaces --if-present
+
+      - name: Test
+        run: npm run test --workspaces --if-present
+
+      # ---- Publish wafixer-sdk önce (n8n-nodes ona bağımlı) ----
+      - name: Publish wafixer-sdk
+        working-directory: packages/wafixer-sdk
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # SDK'nın npm'de göründüğünden emin olmak için kısa bekleme
+      - name: Wait for SDK to propagate
+        run: sleep 30
+
+      # ---- Sonra n8n-nodes-wafixer ----
+      - name: Publish n8n-nodes-wafixer
+        working-directory: packages/n8n-nodes-wafixer
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # ---- GitHub release notları ----
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          body: |
+            Yeni sürüm — npm'e yayınlandı:
+
+            - [`wafixer-sdk@${{ github.ref_name }}`](https://www.npmjs.com/package/wafixer-sdk)
+            - [`n8n-nodes-wafixer@${{ github.ref_name }}`](https://www.npmjs.com/package/n8n-nodes-wafixer)
+
+            Detaylar için aşağıdaki "What's Changed" bölümüne bak.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
