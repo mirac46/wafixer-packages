@@ -24,6 +24,10 @@ const wa = new Wafixer({
   apiKey: 'YOUR_API_KEY',
 })
 
+// API key'in erişebildiği oturumlar
+const sessions = await wa.instances.list()
+const activeSessions = sessions.filter((s) => s.connectionStatus === 'open')
+
 // Düz metin
 await wa.messages.sendText('SatisHatti', {
   number: '905321788329',
@@ -112,6 +116,15 @@ app.post('/wa-webhook', async (req, res) => {
 | `sendPresence(instance, input)` | Yazıyor / kaydediyor / online göstergesi |
 | `archiveChat(instance, input)` | Sohbet arşivle |
 | `markChatUnread(instance, input)` | Sohbeti okunmamış işaretle |
+
+### Instances
+
+| Metod | Ne yapar |
+|---|---|
+| `list()` | API key'in erişebildiği oturumları listeler |
+| `get({ instanceName, instanceId, number })` | Belirli oturumu getirir |
+| `connectionState(instance)` | Canlı bağlantı durumunu döndürür |
+| `connect(instance, number?)` | Kapalı QR oturumunda bağlantı/QR akışını başlatır |
 
 ## Webhook event tipleri
 

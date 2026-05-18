@@ -13,6 +13,7 @@ export { Wafixer, type WafixerClientConfig } from './client'
 // Resources (sınıf tipleri için)
 export { Messages } from './resources/messages'
 export { Chat } from './resources/chat'
+export { Instances } from './resources/instances'
 
 // Errors
 export {
@@ -59,6 +60,15 @@ export type {
   ArchiveChatInput,
   MarkChatUnreadInput,
 } from './types/messages'
+
+export type {
+  WafixerInstanceStatus,
+  WafixerInstanceCounts,
+  WafixerInstance,
+  WafixerConnectionStateResponse,
+  WafixerQrCode,
+  WafixerConnectInstanceResponse,
+} from './types/instances'
 
 // Webhook event types
 export {

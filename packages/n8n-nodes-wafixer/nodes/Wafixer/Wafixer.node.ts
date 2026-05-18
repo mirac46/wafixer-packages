@@ -1,14 +1,23 @@
 import type {
   IExecuteFunctions,
+  ILoadOptionsFunctions,
   INodeExecutionData,
+  INodePropertyOptions,
   INodeType,
   INodeTypeDescription,
 } from 'n8n-workflow'
 import { NodeOperationError } from 'n8n-workflow'
 
 import { Wafixer as WafixerClient } from 'wafixer-sdk'
+import { wafixerLoadOptions } from '../shared/instanceOptions'
 
 export class Wafixer implements INodeType {
+  methods: {
+    loadOptions: {
+      getInstances(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>
+    }
+  } = wafixerLoadOptions
+
   description: INodeTypeDescription = {
     displayName: 'WAFixer',
     name: 'wafixer',
@@ -31,13 +40,16 @@ export class Wafixer implements INodeType {
     properties: [
       // ─────────── Instance ───────────
       {
-        displayName: 'Instance Name',
+        displayName: 'Session Name or ID',
         name: 'instance',
-        type: 'string',
+        type: 'options',
+        typeOptions: {
+          loadOptionsMethod: 'getInstances',
+        },
         default: '',
         required: true,
-        placeholder: 'SatisHatti',
-        description: 'WAFixer panelindeki bağlı numaranın adı (instance name)',
+        description:
+          'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
       },
 
       // ─────────── Operation ───────────

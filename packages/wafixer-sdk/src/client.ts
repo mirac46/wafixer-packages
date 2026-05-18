@@ -7,6 +7,7 @@ import {
 } from './errors'
 import { Messages } from './resources/messages'
 import { Chat } from './resources/chat'
+import { Instances } from './resources/instances'
 
 export interface WafixerClientConfig {
   /** WAFixer API'nin base URL'i — örn. https://wafixer.com */
@@ -25,6 +26,7 @@ export class Wafixer {
   public readonly http: AxiosInstance
   public readonly messages: Messages
   public readonly chat: Chat
+  public readonly instances: Instances
 
   constructor(config: WafixerClientConfig) {
     if (!config.baseUrl) throw new Error('Wafixer: baseUrl gerekli.')
@@ -44,6 +46,7 @@ export class Wafixer {
 
     this.messages = new Messages(this)
     this.chat = new Chat(this)
+    this.instances = new Instances(this)
   }
 
   /**

@@ -29,6 +29,7 @@ n8n'i yeniden başlat. Node panelinde "WAFixer" ve "WAFixer Trigger" görünecek
 5. **Save**
 
 > **Not:** Panel `wfx_` ön ekli kullanıcı anahtarlarını otomatik tanır. Anahtar bir kez gösterilir, kaybedersen yenisini üret.
+> Credential kaydedilince WAFixer action ve trigger node'larında oturumlar otomatik listelenir. Bağlı oturumlar `Active`, yeniden QR isteyenler `QR Required` etiketiyle görünür.
 
 ## Node 1: WAFixer (Action)
 
@@ -50,7 +51,7 @@ Bir akışın içinde WhatsApp mesajı gönderir. **12 operation:**
 | **Mark as Read** | Mesajları okundu işaretle |
 | **Send Presence** | "Yazıyor / kaydediyor / online" |
 
-**Instance Name** → panelde bağlı numaranın ismi (`SatisHatti`, `Deneme2` vb.)
+**Session** → credential'daki API key ile erişilebilen WAFixer oturumları listeden seçilir. `Active` oturumlar çalışmaya hazırdır; `QR Required` oturumlar önce WAFixer panelinden yeniden bağlanmalıdır.
 
 ## Node 2: WAFixer Trigger
 

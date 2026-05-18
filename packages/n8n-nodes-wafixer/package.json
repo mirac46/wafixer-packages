@@ -44,7 +44,7 @@
     ]
   },
   "dependencies": {
-    "wafixer-sdk": "^0.1.0"
+    "wafixer-sdk": "^0.1.1"
   },
   "peerDependencies": {
     "n8n-workflow": "*"

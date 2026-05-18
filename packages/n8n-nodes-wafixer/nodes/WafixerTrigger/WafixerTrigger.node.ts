@@ -1,5 +1,7 @@
 import type {
   IHookFunctions,
+  ILoadOptionsFunctions,
+  INodePropertyOptions,
   IWebhookFunctions,
   INodeType,
   INodeTypeDescription,
@@ -7,6 +9,7 @@ import type {
 } from 'n8n-workflow'
 
 import { Wafixer as WafixerClient } from 'wafixer-sdk'
+import { wafixerLoadOptions } from '../shared/instanceOptions'
 
 const ALL_EVENTS = [
   'MESSAGES_UPSERT',
@@ -32,6 +35,12 @@ const ALL_EVENTS = [
  * otomatik yapılandırır. Workflow durdurulunca temizler.
  */
 export class WafixerTrigger implements INodeType {
+  methods: {
+    loadOptions: {
+      getInstances(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>
+    }
+  } = wafixerLoadOptions
+
   description: INodeTypeDescription = {
     displayName: 'WAFixer Trigger',
     name: 'wafixerTrigger',
@@ -61,13 +70,16 @@ export class WafixerTrigger implements INodeType {
     ],
     properties: [
       {
-        displayName: 'Instance Name',
+        displayName: 'Session Name or ID',
         name: 'instance',
-        type: 'string',
+        type: 'options',
+        typeOptions: {
+          loadOptionsMethod: 'getInstances',
+        },
         default: '',
         required: true,
-        placeholder: 'SatisHatti',
-        description: 'WAFixer panelindeki bağlı numaranın adı',
+        description:
+          'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
       },
       {
         displayName: 'Events',
