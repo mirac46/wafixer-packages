@@ -136,6 +136,14 @@ export interface SendPresenceInput {
   delay?: number
 }
 
+export interface UpdatePresenceInput {
+  number: string
+  /** Boş bırakılırsa karşı tarafa bildirim gitmez; sadece `subscribe` işletilir. */
+  presence?: Presence
+  /** Karşı tarafın presence akışına abone ol (PRESENCE_UPDATE eventi için gerekli). */
+  subscribe?: boolean
+}
+
 // ────────────────── MARK AS READ ──────────────────
 export interface MarkMessagesAsReadInput {
   readMessages: MessageKey[]

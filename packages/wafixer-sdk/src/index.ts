@@ -54,6 +54,7 @@ export type {
   SendListInput,
   SendTemplateInput,
   SendPresenceInput,
+  UpdatePresenceInput,
   MarkMessagesAsReadInput,
   DeleteForEveryoneInput,
   UpdateMessageInput,

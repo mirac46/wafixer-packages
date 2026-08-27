@@ -4,6 +4,7 @@ import type {
   MarkChatUnreadInput,
   MarkMessagesAsReadInput,
   SendPresenceInput,
+  UpdatePresenceInput,
 } from '../types/messages'
 import type { MessageData } from '../types/events'
 
@@ -63,6 +64,25 @@ export class Chat {
     return this.client.request<T>({
       method: 'POST',
       url: this.path(instance, 'sendPresence'),
+      data: input,
+    })
+  }
+
+  /**
+   * Anlık presence — `sendPresence`'ın aksine beklemez, çağrıyı bloklamaz.
+   * Canlı gelen kutusu için: kullanıcı yazdıkça 'composing', bırakınca 'paused'
+   * gönderirsiniz. Göstergeyi kapatmak çağıranın sorumluluğunda.
+   *
+   * `presence` boş + `subscribe: true` → sadece abone olur, karşı tarafa
+   * hiçbir bildirim gitmez.
+   */
+  public async updatePresence<T = unknown>(
+    instance: string,
+    input: UpdatePresenceInput,
+  ): Promise<T> {
+    return this.client.request<T>({
+      method: 'POST',
+      url: this.path(instance, 'updatePresence'),
       data: input,
     })
   }
