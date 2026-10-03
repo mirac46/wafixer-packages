@@ -33,7 +33,7 @@ n8n'i yeniden başlat. Node panelinde "WAFixer" ve "WAFixer Trigger" görünecek
 
 ## Node 1: WAFixer (Action)
 
-Bir akışın içinde WhatsApp mesajı gönderir. **12 operation:**
+Bir akışın içinde WhatsApp mesajı gönderir. **13 operation:**
 
 | Operation | Ne yapar |
 |---|---|
@@ -88,7 +88,16 @@ Trigger node'un çıktısı ile Reply node'u sıralı bağlandığında, **Webho
 
 ## Versiyonlama
 
-İlk versiyon: `0.1.0` (alpha). API yüzeyi stabilleşince `1.0.0`'a geçilir.
+`0.x` sürümleri alpha'dır; API yüzeyi stabilleşince `1.0.0`'a geçilir. Tam liste:
+[Releases](https://github.com/mirac46/wafixer-packages/releases).
+
+### 0.1.2
+
+- **Session** alanı serbest metin yerine listeden seçilir: credential'daki API key'in erişebildiği oturumlar
+  durumlarıyla (`Active`, `QR Required`, `Connecting`, `Not Active`) listelenir; ifade (expression) ile ad vermek
+  hâlâ mümkün. Action ve Trigger node'larında aynı.
+- `wafixer-sdk` bağımlılığı `^0.1.2`: **Send Location** yer adı / adres, **Send List** footer boş bırakıldığında
+  istek artık 400 dönmüyor.
 
 ## Sorun giderme
 

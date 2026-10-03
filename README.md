@@ -13,8 +13,8 @@ WAFixer ekosistemi için resmi paket monorepo'su. Sürüm geçmişi ve yayın no
 
 | Paket | Versiyon | Ne işe yarar |
 |---|---|---|
-| [`wafixer-sdk`](./packages/wafixer-sdk) | 0.1.0 | TypeScript SDK — herhangi bir Node.js projesinden mesaj gönderme |
-| [`n8n-nodes-wafixer`](./packages/n8n-nodes-wafixer) | 0.1.0 | n8n community nodes — drag-and-drop entegrasyon |
+| [`wafixer-sdk`](./packages/wafixer-sdk) | 0.1.2 | TypeScript SDK — herhangi bir Node.js projesinden mesaj gönderme |
+| [`n8n-nodes-wafixer`](./packages/n8n-nodes-wafixer) | 0.1.2 | n8n community nodes — drag-and-drop entegrasyon |
 
 ## Sürümler
 

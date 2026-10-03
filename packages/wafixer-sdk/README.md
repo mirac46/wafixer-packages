@@ -95,14 +95,15 @@ app.post('/wa-webhook', async (req, res) => {
 | `sendPtv(instance, input)` | Push-to-video kısa video |
 | `sendSticker(instance, input)` | Sticker |
 | `sendButtons(instance, input)` | Buton mesajı (reply / url / call / copy / pix) |
-| `sendList(instance, input)` | Listeli interaktif mesaj |
+| `sendList(instance, input)` | Listeli interaktif mesaj (`footerText` verilmezse boş gönderilir) |
 | `sendPoll(instance, input)` | Anket |
-| `sendLocation(instance, input)` | Konum |
+| `sendLocation(instance, input)` | Konum (`name` / `address` verilmezse boş gönderilir) |
 | `sendContact(instance, input)` | Kişi kartı |
 | `sendReaction(instance, input)` | Bir mesaja emoji reaksiyon |
 | `sendTemplate(instance, input)` | Meta Business template (Cloud API) |
 | `deleteForEveryone(instance, input)` | Mesajı herkesten sil |
 | `updateMessage(instance, input)` | Bir mesajın metnini düzenle |
+| `downloadMedia(event)` | Webhook event'indeki medyayı base64 olarak indir |
 | `replyTo(event, input)` | Webhook event'ine alıntılı yanıt |
 | `replyWithMedia(event, input)` | Webhook event'ine medya ile yanıt |
 | `reactTo(event, emoji)` | Webhook event'ine reaksiyon |
@@ -113,7 +114,8 @@ app.post('/wa-webhook', async (req, res) => {
 |---|---|
 | `markAsRead(instance, input)` | Mesajları okundu işaretle (mavi tik) |
 | `markEventAsRead(event)` | Webhook event'ini okundu işaretle |
-| `sendPresence(instance, input)` | Yazıyor / kaydediyor / online göstergesi |
+| `sendPresence(instance, input)` | Yazıyor / kaydediyor / online göstergesi; `delay` ms bekler, sonra `paused` gönderir (`delay` zorunlu) |
+| `updatePresence(instance, input)` | Beklemeden presence gönderir; `presence` boş ve `subscribe: true` ise yalnız karşı tarafın presence akışına abone olur |
 | `archiveChat(instance, input)` | Sohbet arşivle |
 | `markChatUnread(instance, input)` | Sohbeti okunmamış işaretle |
 
@@ -164,6 +166,19 @@ try {
   if (e instanceof WafixerNotFoundError) console.log('Instance bulunamadı')
 }
 ```
+
+## Sürüm notları
+
+Tam liste: [Releases](https://github.com/mirac46/wafixer-packages/releases).
+
+### 0.1.2
+
+- `chat.updatePresence`: beklemeden presence gönderir; `subscribe: true` ile karşı tarafın presence akışına abone olur.
+- `instances` kaynağı: `list`, `get`, `connectionState`, `connect`; `WafixerInstance` ve ilgili tipler dışa açıldı.
+- `sendLocation` eksik `name` / `address`, `sendList` eksik `footerText` alanını boş metinle gönderir; API bu alanları
+  zorunlu tuttuğu için önceki sürümde bu çağrılar 400 dönüyordu.
+- `SendPresenceInput.delay` artık zorunlu (API zaten zorunlu tutuyordu; eksik çağrı 400 dönüyordu).
+- `axios` alt sınırı `^1.20.0` (güvenlik düzeltmeleri).
 
 ## Lisans
 
