@@ -7,3 +7,6 @@ dist/
 *.tsbuildinfo
 .npm
 .cache
+
+# yan ağaçlar ve geçici çalışma
+/_calisma/
