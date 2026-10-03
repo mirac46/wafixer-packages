@@ -1,71 +1,104 @@
 name: Release
 
+# main'e gelen her push iki paketin package.json sürümünü ayrı ayrı okur. Etiketi olmayan paket
+# npm'e yayınlanır (sürüm npm'de zaten varsa yayın atlanır), ardından <paket>@X.Y.Z etiketi ve
+# Türkçe yayın notlu GitHub Release üretilir. İki paket de etiketliyse iş başarıyla biter.
 on:
   push:
-    tags:
-      # v* push'larında çalışır: v0.1.0, v0.2.0, vb.
-      - 'v*'
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
-  id-token: write   # npm provenance için OIDC
+  id-token: write # npm provenance için OIDC
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
-  publish:
+  release:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
-          cache: 'npm'
-          registry-url: 'https://registry.npmjs.org'
+          cache: npm
+          registry-url: https://registry.npmjs.org
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Release notes tests
+        run: node --test scripts/__tests__/release-notes.test.mjs
 
-      - name: Build
-        run: npm run build
+      - name: Resolve wafixer-sdk version
+        id: sdk
+        run: node scripts/release-notes.mjs --package wafixer-sdk --github-output --out "$RUNNER_TEMP/wafixer-sdk.md"
 
-      - name: Lint
-        run: npm run lint --workspaces --if-present
+      - name: Resolve n8n-nodes-wafixer version
+        id: n8n
+        run: node scripts/release-notes.mjs --package n8n-nodes-wafixer --github-output --out "$RUNNER_TEMP/n8n-nodes-wafixer.md"
 
-      - name: Test
-        run: npm run test --workspaces --if-present
+      - name: Install, build, lint, test
+        if: steps.sdk.outputs.skip == 'false' || steps.n8n.outputs.skip == 'false'
+        run: |
+          npm ci
+          npm run build
+          npm run lint
+          npm run test
 
-      # ---- Publish wafixer-sdk önce (n8n-nodes ona bağımlı) ----
-      - name: Publish wafixer-sdk
+      # n8n-nodes-wafixer wafixer-sdk'ya bağımlı; SDK önce yayınlanır.
+      - name: Release wafixer-sdk
+        if: steps.sdk.outputs.skip == 'false'
         working-directory: packages/wafixer-sdk
-        run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE: wafixer-sdk
+          VERSION: ${{ steps.sdk.outputs.version }}
+          TAG: ${{ steps.sdk.outputs.tag }}
+          TITLE: ${{ steps.sdk.outputs.title }}
+          NOTES: ${{ runner.temp }}/wafixer-sdk.md
+        run: |
+          if npm view "$PACKAGE@$VERSION" version > /dev/null 2>&1; then
+            echo "$PACKAGE@$VERSION npm'de zaten var; yayın atlanıyor."
+          else
+            npm publish --provenance --access public
+          fi
+          git tag "$TAG" "$GITHUB_SHA"
+          git push origin "refs/tags/$TAG"
+          gh release create "$TAG" --title "$TITLE" --notes-file "$NOTES" --latest --verify-tag
+          cat "$NOTES" >> "$GITHUB_STEP_SUMMARY"
 
-      # SDK'nın npm'de göründüğünden emin olmak için kısa bekleme
-      - name: Wait for SDK to propagate
+      # Yeni SDK sürümünün npm kayıt defterinde görünmesi birkaç saniye sürer.
+      - name: Wait for wafixer-sdk on npm
+        if: steps.sdk.outputs.skip == 'false' && steps.n8n.outputs.skip == 'false'
         run: sleep 30
 
-      # ---- Sonra n8n-nodes-wafixer ----
-      - name: Publish n8n-nodes-wafixer
+      - name: Release n8n-nodes-wafixer
+        if: steps.n8n.outputs.skip == 'false'
         working-directory: packages/n8n-nodes-wafixer
-        run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      # ---- GitHub release notları ----
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-          name: ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
-          body: |
-            Yeni sürüm — npm'e yayınlandı:
-
-            - [`wafixer-sdk@${{ github.ref_name }}`](https://www.npmjs.com/package/wafixer-sdk)
-            - [`n8n-nodes-wafixer@${{ github.ref_name }}`](https://www.npmjs.com/package/n8n-nodes-wafixer)
-
-            Detaylar için aşağıdaki "What's Changed" bölümüne bak.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE: n8n-nodes-wafixer
+          VERSION: ${{ steps.n8n.outputs.version }}
+          TAG: ${{ steps.n8n.outputs.tag }}
+          TITLE: ${{ steps.n8n.outputs.title }}
+          NOTES: ${{ runner.temp }}/n8n-nodes-wafixer.md
+        run: |
+          if npm view "$PACKAGE@$VERSION" version > /dev/null 2>&1; then
+            echo "$PACKAGE@$VERSION npm'de zaten var; yayın atlanıyor."
+          else
+            npm publish --provenance --access public
+          fi
+          git tag "$TAG" "$GITHUB_SHA"
+          git push origin "refs/tags/$TAG"
+          gh release create "$TAG" --title "$TITLE" --notes-file "$NOTES" --latest --verify-tag
+          cat "$NOTES" >> "$GITHUB_STEP_SUMMARY"
