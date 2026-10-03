@@ -1,11 +1,13 @@
 # wafixer-packages
 
+[![Sürüm](https://img.shields.io/github/v/release/mirac46/wafixer-packages?label=s%C3%BCr%C3%BCm)](https://github.com/mirac46/wafixer-packages/releases)
 [![CI](https://github.com/mirac46/wafixer-packages/actions/workflows/ci.yml/badge.svg)](https://github.com/mirac46/wafixer-packages/actions/workflows/ci.yml)
 [![Release](https://github.com/mirac46/wafixer-packages/actions/workflows/release.yml/badge.svg)](https://github.com/mirac46/wafixer-packages/actions/workflows/release.yml)
 [![npm wafixer-sdk](https://img.shields.io/npm/v/wafixer-sdk?label=wafixer-sdk)](https://www.npmjs.com/package/wafixer-sdk)
 [![npm n8n-nodes-wafixer](https://img.shields.io/npm/v/n8n-nodes-wafixer?label=n8n-nodes-wafixer)](https://www.npmjs.com/package/n8n-nodes-wafixer)
 
-WAFixer ekosistemi için resmi paket monorepo'su.
+WAFixer ekosistemi için resmi paket monorepo'su. Sürüm geçmişi ve yayın notları:
+[Releases](https://github.com/mirac46/wafixer-packages/releases).
 
 ## Paketler
 
@@ -14,20 +16,25 @@ WAFixer ekosistemi için resmi paket monorepo'su.
 | [`wafixer-sdk`](./packages/wafixer-sdk) | 0.1.0 | TypeScript SDK — herhangi bir Node.js projesinden mesaj gönderme |
 | [`n8n-nodes-wafixer`](./packages/n8n-nodes-wafixer) | 0.1.0 | n8n community nodes — drag-and-drop entegrasyon |
 
-## Yayın
+## Sürümler
 
-Tag bazlı **otomatik npm publish** — detaylar: [RELEASING.md](./RELEASING.md)
+Her paketin sürümü kendi `package.json`'ındadır ve etiketi paket başınadır: `wafixer-sdk@0.1.2`,
+`n8n-nodes-wafixer@0.1.2`. Ayrıntı: [RELEASING.md](./RELEASING.md).
+
+`main`'e gelen her push'ta [`release.yml`](.github/workflows/release.yml) iki paketin sürümünü okur. Etiketi
+olmayan paketi npm'e yayınlar (önce `wafixer-sdk`), `<paket>@<sürüm>` etiketini ve Türkçe yayın notlu GitHub
+Release'i üretir. Sürüm değişmediyse bir şey yapmadan başarıyla biter. Elle etiket push'lanmaz.
 
 ```bash
-# yeni sürüm yayınlamak için:
-npm version patch -w wafixer-sdk
-npm version patch -w n8n-nodes-wafixer
-git add packages/*/package.json
-git commit -m "chore: release v0.1.1"
-git tag v0.1.1
-git push origin main --tags
-# → GitHub Actions npm'e otomatik publish eder
+npm version patch -w wafixer-sdk --no-git-tag-version
+git add packages/wafixer-sdk/package.json package-lock.json
+git commit -m "chore: wafixer-sdk 0.1.2"
+git push origin main
 ```
+
+Yayın notu, paketin önceki etiketinden bu yana yalnız o paketin klasörüne dokunan commit mesajlarından üretilir
+(`feat` → Yeni, `fix` → Düzeltmeler, `refactor`/`perf` → Değişiklikler, `docs`/`chore`/`test`/`ci` → Belge ve
+bakım, öneksiz → Diğer). Yerelde önizleme: `node scripts/release-notes.mjs --package wafixer-sdk`.
 
 ## Geliştirme
 
@@ -65,33 +72,11 @@ npm link n8n-nodes-wafixer
 n8n start
 ```
 
-## Yayın akışı
+## Elle yayın
 
-Önce SDK, sonra n8n-nodes (n8n-nodes SDK'ya bağımlı):
-
-```bash
-# SDK
-cd packages/wafixer-sdk
-npm run build
-npm publish
-
-# n8n nodes
-cd ../n8n-nodes-wafixer
-npm run build
-npm publish
-```
-
-İlk yayında `npm login` ile (npm kullanıcı adın: `wafixer`) hesabına giriş yap.
-
-## Sürüm artırma
-
-```bash
-# semver bump (her iki paket için)
-npm version patch -w wafixer-sdk
-npm version patch -w n8n-nodes-wafixer
-```
-
-n8n nodes paketinde `dependencies.wafixer-sdk` versiyonunu yeni SDK sürümüne güncellemeyi unutma.
+Normal yol `main` push'udur (yukarıdaki "Sürümler"). İş akışı yarıda kalırsa elle yayın adımları
+[RELEASING.md](./RELEASING.md) "Hata durumunda" bölümündedir. SDK sürümü artınca `n8n-nodes-wafixer`
+içindeki `dependencies.wafixer-sdk` aralığını da güncelle.
 
 ## Lisans
 

@@ -1,6 +1,7 @@
 # Yayın Rehberi (Releasing)
 
-Bu paketler **GitHub Actions ile otomatik** olarak npm'e yayınlanıyor. Manuel `npm publish` çalıştırmana gerek yok — sadece git tag pushlamak yeterli.
+Bu paketler **GitHub Actions ile otomatik** olarak npm'e yayınlanır. Elle `npm publish` ya da etiket push'u
+gerekmez: paketin sürümünü artırıp `main`'e push etmek yeterlidir.
 
 ## Tek seferlik kurulum
 
@@ -23,53 +24,46 @@ Bu token GitHub Actions'ın npm'e push yapabilmesi için gerekli — başka bir 
 
 ## Yayın akışı
 
-### A) Sürüm artırma (otomatik)
+### A) Sürüm artırma
 
-Yarı-otomatik: tek komutla iki paketi de bump edersin.
-
-```bash
-# Patch sürümü artır (0.1.0 → 0.1.1)
-npm version patch -w wafixer-sdk
-npm version patch -w n8n-nodes-wafixer
-
-# Minor (0.1.0 → 0.2.0)
-npm version minor -w wafixer-sdk
-npm version minor -w n8n-nodes-wafixer
-
-# Major (0.1.0 → 1.0.0)
-npm version major -w wafixer-sdk
-npm version major -w n8n-nodes-wafixer
-```
-
-**Önemli:** n8n-nodes-wafixer içindeki `dependencies.wafixer-sdk` versiyonunu da güncelle:
+İki paket bağımsız sürümlenir; yalnız değişen paketin sürümünü artır.
 
 ```bash
-# package.json'da: "wafixer-sdk": "^0.1.1" → "^0.1.2" gibi
+# Patch (0.1.1 → 0.1.2)
+npm version patch -w wafixer-sdk --no-git-tag-version
+
+# Minor (0.1.1 → 0.2.0) ya da Major (0.1.1 → 1.0.0)
+npm version minor -w n8n-nodes-wafixer --no-git-tag-version
+npm version major -w wafixer-sdk --no-git-tag-version
 ```
 
-### B) Commit + tag + push
+**Önemli:** SDK sürümü artınca n8n-nodes-wafixer içindeki `dependencies.wafixer-sdk` aralığını da güncelle
+(`"wafixer-sdk": "^0.1.1"` → `"^0.1.2"` gibi).
+
+### B) Commit + push
 
 ```bash
-git add packages/*/package.json
-git commit -m "chore: release v0.1.1"
-git tag v0.1.1
-git push origin main --tags
+git add packages/wafixer-sdk/package.json package-lock.json
+git commit -m "chore: wafixer-sdk 0.1.2"
+git push origin main
 ```
+
+Etiketi elle oluşturma; iş akışı oluşturur.
 
 ### C) GitHub Actions devreyi devralır
 
-`v*` tag'i push edilince [`.github/workflows/release.yml`](.github/workflows/release.yml) tetiklenir:
+`main` push'u [`.github/workflows/release.yml`](.github/workflows/release.yml) iş akışını tetikler:
 
-1. ✅ `npm ci` — bağımlılıkları kur
-2. ✅ `npm run build` — iki paketi de derle
-3. ✅ `npm run lint` — n8n linter
-4. ✅ `npm run test` — vitest
-5. ✅ `npm publish` (wafixer-sdk) — provenance ile
-6. ⏱ 30 saniye bekle (SDK npm registry'de yansısın)
-7. ✅ `npm publish` (n8n-nodes-wafixer) — SDK'yı dependency olarak çeker
-8. ✅ GitHub Release oluştur — otomatik changelog ile
+1. Her paketin sürümü okunur. `<paket>@<sürüm>` etiketi varsa ya da sürüm eski `vX.Y.Z` etiketiyle yayınlandıysa
+   o paket atlanır.
+2. Yayınlanacak paket varsa `npm ci`, `npm run build`, `npm run lint`, `npm run test`.
+3. `wafixer-sdk`: bu sürüm npm'de yoksa `npm publish --provenance`; ardından `wafixer-sdk@<sürüm>` etiketi ve
+   GitHub Release.
+4. İki paket birlikte yayınlanıyorsa 30 saniye beklenir (SDK npm kayıt defterinde görünsün).
+5. `n8n-nodes-wafixer`: aynı adımlar, `n8n-nodes-wafixer@<sürüm>` etiketi.
 
-Süreç **GitHub repo → Actions sekmesinden** canlı izlenebilir.
+Yayın notu, paketin önceki etiketinden bu yana o paketin klasörüne dokunan commit mesajlarından Türkçe gruplarla
+üretilir (`scripts/release-notes.mjs`). Süreç **GitHub repo → Actions sekmesinden** canlı izlenebilir.
 
 ## Yayın sonrası kontrol
 
@@ -78,7 +72,7 @@ npm view wafixer-sdk version
 npm view n8n-nodes-wafixer version
 ```
 
-İkisi de yeni sürümü göstermeli.
+İkisi de yeni sürümü göstermeli; Releases sayfasında `<paket>@<sürüm>` başlıklı yayın görünmeli.
 
 n8n cloud / self-hosted'da:
 
@@ -87,10 +81,14 @@ n8n cloud / self-hosted'da:
 
 ## Hata durumunda
 
-### Yayın yarıda kaldı (sadece SDK yayınlandı, n8n-nodes patladı)
+### Yayın yarıda kaldı
+
+Actions'ta iş akışını yeniden çalıştır (**Re-run jobs**). npm'de zaten olan sürüm yeniden yayınlanmaz; eksik
+etiket ve Release tamamlanır. Etiket oluştu ama Release oluşmadıysa Release'i Releases sayfasından elle aç.
+
+Son çare elle yayın:
 
 ```bash
-# n8n-nodes paketinin manuel publish'i:
 cd packages/n8n-nodes-wafixer
 npm publish --access public
 ```
@@ -111,11 +109,12 @@ Yeni bir patch (`0.1.2`) ile düzeltmek her zaman daha temiz.
 
 ## Pre-release sürümler (alpha/beta)
 
-```bash
-# Beta tag'i ile yayınla — kullanıcılar @beta ile çekecek
-npm version 0.2.0-beta.1 -w wafixer-sdk
-git tag v0.2.0-beta.1
-git push --tags
-```
+İş akışı her sürümü npm'de `latest` etiketiyle yayınlar; `0.2.0-beta.1` gibi bir sürümü `main`'e göndermek onu
+herkesin varsayılan sürümü yapar. Beta yayını için iş akışına `npm publish --tag beta` desteği eklenene kadar
+beta sürümleri `main` dışında elle yayınla:
 
-Workflow buna göre bir küçük güncelleme isteyebilir (`npm publish --tag beta`); şu anki workflow latest tag'e push ediyor.
+```bash
+npm version 0.2.0-beta.1 -w wafixer-sdk --no-git-tag-version
+cd packages/wafixer-sdk
+npm publish --tag beta --access public
+```
