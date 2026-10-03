@@ -10,6 +10,7 @@
     "build": "npm run build -w wafixer-sdk && npm run build -w n8n-nodes-wafixer",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
+    "test:release": "node --test scripts/__tests__/release-notes.test.mjs",
     "clean": "npm run clean --workspaces --if-present",
     "verify": "npm run clean && npm run build && npm run lint && npm run test"
   },
