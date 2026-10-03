@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-wafixer",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "n8n community nodes for WAFixer — send WhatsApp messages, listen for incoming messages, react to webhooks. Powered by wafixer-sdk.",
   "keywords": [
     "n8n-community-node-package",
@@ -44,7 +44,7 @@
     ]
   },
   "dependencies": {
-    "wafixer-sdk": "^0.1.1"
+    "wafixer-sdk": "^0.1.2"
   },
   "peerDependencies": {
     "n8n-workflow": "*"
