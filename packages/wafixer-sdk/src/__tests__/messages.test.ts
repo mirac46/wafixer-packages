@@ -107,6 +107,44 @@ describe('Messages resource', () => {
       reaction: '',
     })
   })
+
+  it('sendLocation sends empty name and address when omitted', async () => {
+    const { wa, requestFn } = makeClient()
+    await wa.messages.sendLocation('Inst', { number: '905', latitude: 41.01, longitude: 28.97 })
+    expect(requestFn.mock.calls[0][0]).toEqual({
+      method: 'POST',
+      url: '/message/sendLocation/Inst',
+      data: { number: '905', latitude: 41.01, longitude: 28.97, name: '', address: '' },
+    })
+  })
+
+  it('sendLocation keeps given name and address', async () => {
+    const { wa, requestFn } = makeClient()
+    await wa.messages.sendLocation('Inst', {
+      number: '905',
+      latitude: 41.01,
+      longitude: 28.97,
+      name: 'Ofis',
+      address: 'Kadıköy',
+    })
+    expect(requestFn.mock.calls[0][0].data).toMatchObject({ name: 'Ofis', address: 'Kadıköy' })
+  })
+
+  it('sendList sends empty footerText when omitted', async () => {
+    const { wa, requestFn } = makeClient()
+    const sections = [{ title: 'Menü', rows: [{ title: 'A', description: 'a', rowId: '1' }] }]
+    await wa.messages.sendList('Inst', {
+      number: '905',
+      title: 'Seçim',
+      buttonText: 'Aç',
+      sections,
+    })
+    expect(requestFn.mock.calls[0][0]).toEqual({
+      method: 'POST',
+      url: '/message/sendList/Inst',
+      data: { number: '905', title: 'Seçim', buttonText: 'Aç', sections, footerText: '' },
+    })
+  })
 })
 
 describe('Chat resource', () => {
@@ -139,6 +177,22 @@ describe('Chat resource', () => {
       url: '/chat/sendPresence/Inst',
       data: { number: '905', presence: 'composing', delay: 1500 },
     })
+  })
+
+  it('updatePresence posts to updatePresence endpoint without delay', async () => {
+    const { wa, requestFn } = makeClient()
+    await wa.chat.updatePresence('Satış Hattı', { number: '905', presence: 'composing' })
+    expect(requestFn.mock.calls[0][0]).toEqual({
+      method: 'POST',
+      url: `/chat/updatePresence/${encodeURIComponent('Satış Hattı')}`,
+      data: { number: '905', presence: 'composing' },
+    })
+  })
+
+  it('updatePresence allows subscribe-only payload', async () => {
+    const { wa, requestFn } = makeClient()
+    await wa.chat.updatePresence('Inst', { number: '905', subscribe: true })
+    expect(requestFn.mock.calls[0][0].data).toEqual({ number: '905', subscribe: true })
   })
 })
 

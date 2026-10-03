@@ -97,7 +97,8 @@ export class Messages {
     return this.client.request<T>({
       method: 'POST',
       url: this.path(instance, 'sendList'),
-      data: input,
+      // API şeması footerText'i zorunlu tutar; alan eksikse istek 400 ile döner.
+      data: { ...input, footerText: input.footerText ?? '' },
     })
   }
 
@@ -119,7 +120,8 @@ export class Messages {
     return this.client.request<T>({
       method: 'POST',
       url: this.path(instance, 'sendLocation'),
-      data: input,
+      // API şeması name ve address alanlarını zorunlu tutar; boş metin kabul edilir.
+      data: { ...input, name: input.name ?? '', address: input.address ?? '' },
     })
   }
 

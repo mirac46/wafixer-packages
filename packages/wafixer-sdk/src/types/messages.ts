@@ -43,7 +43,9 @@ export interface SendStickerInput extends BaseSendInput {
 export interface SendLocationInput extends BaseSendInput {
   latitude: number
   longitude: number
+  /** Verilmezse boş metin gönderilir; API alanı zorunlu tutar. */
   name?: string
+  /** Verilmezse boş metin gönderilir; API alanı zorunlu tutar. */
   address?: string
 }
 
@@ -117,6 +119,7 @@ export interface ListSection {
 export interface SendListInput extends BaseSendInput {
   title: string
   description?: string
+  /** Verilmezse boş metin gönderilir; API alanı zorunlu tutar. */
   footerText?: string
   buttonText: string
   sections: ListSection[]
@@ -133,7 +136,11 @@ export interface SendTemplateInput extends BaseSendInput {
 export interface SendPresenceInput {
   number: string
   presence: Presence
-  delay?: number
+  /**
+   * Göstergenin açık kalacağı süre (ms); süre dolunca 'paused' gönderilir. API alanı zorunlu
+   * tutar. Beklemeden gösterge açıp kapatmak için `chat.updatePresence` kullanın.
+   */
+  delay: number
 }
 
 export interface UpdatePresenceInput {
