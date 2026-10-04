@@ -24,10 +24,18 @@ const ALL_EVENTS = [
   'CHATS_UPDATE',
   'CHATS_DELETE',
   'GROUPS_UPSERT',
-  'GROUPS_UPDATE',
+  'GROUP_UPDATE',
   'GROUP_PARTICIPANTS_UPDATE',
   'CALL',
 ] as const
+
+// Sunucunun ayar listesi groups.update için tekil GROUP_UPDATE adını kullanır; GROUPS_UPDATE isteği 400 ile düşürür.
+const LEGACY_EVENT_NAMES: Record<string, string> = { GROUPS_UPDATE: 'GROUP_UPDATE' }
+
+function eventConstant(name: string): string {
+  const constant = name.replace(/[.-]/g, '_').toUpperCase()
+  return LEGACY_EVENT_NAMES[constant] ?? constant
+}
 
 /**
  * WAFixer'dan gelen webhook olaylarını dinler. Workflow aktif edildiğinde
@@ -94,7 +102,7 @@ export class WafixerTrigger implements INodeType {
           { name: 'Contact Update', value: 'CONTACTS_UPDATE', description: 'Contacts.update' },
           { name: 'Group Created', value: 'GROUPS_UPSERT', description: 'Groups.upsert' },
           { name: 'Group Participants', value: 'GROUP_PARTICIPANTS_UPDATE', description: 'Group-participants.update' },
-          { name: 'Group Updated', value: 'GROUPS_UPDATE', description: 'Groups.update' },
+          { name: 'Group Updated', value: 'GROUP_UPDATE', description: 'Groups.update' },
           { name: 'Incoming Call', value: 'CALL', description: 'Call' },
           { name: 'Message Deleted', value: 'MESSAGES_DELETE', description: 'Messages.delete' },
           { name: 'Message Status', value: 'MESSAGES_UPDATE', description: 'Messages.update' },
@@ -162,7 +170,7 @@ export class WafixerTrigger implements INodeType {
           apiKey: string
         }
         const instance = this.getNodeParameter('instance') as string
-        const events = this.getNodeParameter('events') as string[]
+        const events = (this.getNodeParameter('events') as string[]).map(eventConstant)
         const options = this.getNodeParameter('options', {}) as {
           webhookBase64?: boolean
         }
@@ -221,13 +229,13 @@ export class WafixerTrigger implements INodeType {
       instance?: string
       data?: { key?: { fromMe?: boolean } }
     }
-    const events = this.getNodeParameter('events') as string[]
+    const events = (this.getNodeParameter('events') as string[]).map(eventConstant)
     const options = this.getNodeParameter('options', {}) as {
       ignoreFromMe?: boolean
     }
 
     // Filtre: seçilmeyen event'leri atla (byEvents=false olduğu için backend hepsini gönderir)
-    const eventName = (body.event ?? '').replace(/[.-]/g, '_').toUpperCase()
+    const eventName = eventConstant(body.event ?? '')
     if (events.length && !events.includes(eventName)) {
       return { noWebhookResponse: true }
     }
