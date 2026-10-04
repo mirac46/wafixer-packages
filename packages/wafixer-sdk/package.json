@@ -1,10 +1,15 @@
 {
   "name": "wafixer-sdk",
-  "version": "0.1.2",
-  "description": "Official WAFixer TypeScript SDK — focused on WhatsApp message operations (send text, media, audio, buttons, list, location, contact, reaction, poll, presence, mark as read).",
+  "version": "0.2.0",
+  "description": "Official WAFixer TypeScript SDK — WhatsApp, Messenger and Instagram messaging, Facebook/Instagram comments, Facebook Lead Ads and typed webhook events.",
   "keywords": [
     "wafixer",
     "whatsapp",
+    "messenger",
+    "instagram",
+    "facebook",
+    "lead-ads",
+    "comments",
     "baileys",
     "messaging",
     "sdk",
@@ -26,6 +31,7 @@
   "files": [
     "dist",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
