@@ -1,3 +1,5 @@
+import type { ChannelCapabilities, WafixerChannel } from './contracts'
+
 export type WafixerInstanceStatus = 'open' | 'connecting' | 'close' | string
 
 export interface WafixerInstanceCounts {
@@ -13,7 +15,9 @@ export interface WafixerInstance {
   ownerJid: string | null
   ownerEmail?: string | null
   profilePicUrl?: string | null
+  /** `WHATSAPP-BAILEYS`, `WHATSAPP-BUSINESS`, `WAFIXER`, `MESSENGER`, `INSTAGRAM`. */
   integration: string | null
+  /** WhatsApp'ta telefon; Messenger'da Sayfa, Instagram'da hesap kimliği. */
   number: string | null
   clientName?: string | null
   createdAt?: string | null
@@ -23,6 +27,10 @@ export interface WafixerInstance {
   businessId?: string | null
   disconnectionAt?: string | null
   disconnectionReasonCode?: number | null
+  /** Kanal kodu; tanınmayan entegrasyonda `null`, eski sunucularda alan yok. */
+  channel?: WafixerChannel | null
+  /** Kanalın yetenekleri (hızlı yanıt, pencere, medya türleri); istemci sabit yazmaz. */
+  capabilities?: ChannelCapabilities | null
   _count?: WafixerInstanceCounts
 }
 
@@ -52,3 +60,10 @@ export type WafixerConnectInstanceResponse =
       }
       qrcode?: WafixerQrCode
     }
+
+/** `instance/logout` ve `instance/delete` yanıtı. */
+export interface WafixerActionResponse {
+  status: string
+  error: boolean
+  response: { message: string }
+}

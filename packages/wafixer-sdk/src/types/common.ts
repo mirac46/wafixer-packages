@@ -42,6 +42,9 @@ export interface SendOptions {
 }
 
 export interface BaseSendInput extends SendOptions {
-  /** Hedef telefon numarası — uluslararası kod ile (905...). */
+  /**
+   * WhatsApp'ta uluslararası kodlu telefon (905...). Messenger/Instagram'da PSID/IGSID ya da
+   * `{id}@messenger` / `{id}@instagram` (webhook'taki `remoteJid`).
+   */
   number: string
 }

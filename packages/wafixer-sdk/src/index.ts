@@ -13,14 +13,30 @@ export { Wafixer, type WafixerClientConfig } from './client'
 // Resources (sınıf tipleri için)
 export { Messages } from './resources/messages'
 export { Chat } from './resources/chat'
-export { Instances } from './resources/instances'
+export { Instances, MetaMessaging } from './resources/instances'
+export { Comments } from './resources/comments'
+export { Leads, type LeadPagesApi, type LeadFormsApi, type LeadItemsApi } from './resources/leads'
+export { Webhook, type WebhookSetInput, type WebhookSettings } from './resources/webhook'
 
 // Errors
 export {
   WafixerError,
   WafixerAuthError,
+  WafixerPermissionError,
   WafixerNotFoundError,
   WafixerValidationError,
+  WafixerUnsupportedChannelError,
+  WafixerWindowClosedError,
+  WafixerConflictError,
+  WafixerChannelAuthError,
+  WafixerRateLimitError,
+  WafixerUnavailableError,
+  toWafixerError,
+  readErrorBody,
+  parseRetryAfter,
+  type WafixerErrorCode,
+  type WafixerErrorOptions,
+  type ApiErrorInput,
 } from './errors'
 
 // Common types
@@ -69,11 +85,77 @@ export type {
   WafixerConnectionStateResponse,
   WafixerQrCode,
   WafixerConnectInstanceResponse,
+  WafixerActionResponse,
 } from './types/instances'
+
+// Kanal sözleşmesinden (channels-v1 OpenAPI) türetilen tipler
+export type {
+  WafixerChannel,
+  MetaMessagingChannel,
+  ChannelErrorCode,
+  ChannelErrorBody,
+  ChannelCapabilities,
+  QuickReply,
+  SendResponse,
+  ReplyWindow,
+  CredentialStatus,
+  ConnectionUpdateReason,
+  MetaMessagingStatus,
+  MetaMessagingConfig,
+  MetaMessagingDiscoverRequest,
+  MetaMessagingDiscoverResponse,
+  DiscoveredPage,
+  MetaMessagingConnectRequest,
+  MetaMessagingConnectResponse,
+  MetaMessagingReconnectRequest,
+  MetaMessagingSessionRequest,
+  MetaMessagingSessionResponse,
+  MetaCommentPlatform,
+  MetaComment,
+  MetaPost,
+  MetaCommentListRequest,
+  MetaCommentListResponse,
+  MetaCommentThread,
+  MetaCommentReplyRequest,
+  MetaCommentReplyResponse,
+  MetaCommentMarkReadRequest,
+  MetaCommentMarkReadResponse,
+  MetaCommentImportRequest,
+  MetaCommentImportResponse,
+  MetaCommentStatus,
+  MetaCommentEventData,
+  MetaCommentReplyEventData,
+  LeadErrorCode,
+  LeadStatus,
+  LeadFetchStatus,
+  LeadPageStatus,
+  LeadField,
+  Lead,
+  LeadListResponse,
+  LeadListQuery,
+  LeadUpdateRequest,
+  LeadForm,
+  LeadFormListResponse,
+  LeadFormsQuery,
+  LeadFormsSyncRequest,
+  LeadPage,
+  LeadPageListResponse,
+  LeadsConfig,
+  LeadsDiscoverRequest,
+  LeadsDiscoverResponse,
+  LeadsConnectRequest,
+  LeadsConnectResponse,
+  LeadImportRequest,
+  LeadImportResponse,
+  LeadDeleteResponse,
+  LeadEventData,
+  LeadWebhookEnvelope,
+} from './types/contracts'
 
 // Webhook event types
 export {
   getMessageText,
+  getChannelUserId,
   type AnyWebhookEvent,
   type WebhookEnvelope,
   type WebhookEventName,
@@ -95,4 +177,24 @@ export {
   type ChatsDeleteEvent,
   type CallData,
   type CallEvent,
+  type CommentReceivedEvent,
+  type CommentUpdatedEvent,
+  type CommentRemovedEvent,
+  type CommentReplySentEvent,
+  type CommentWebhookEvent,
+  type LeadReceivedEvent,
+  type LeadUpdatedEvent,
+  type LeadWebhookEvent,
 } from './types/events'
+
+export {
+  WEBHOOK_EVENTS,
+  COMMENT_EVENTS,
+  LEAD_EVENTS,
+  webhookEventConstant,
+  isWebhookEventConstant,
+  isWafixerWebhookEvent,
+  isWebhookEvent,
+  parseWebhookEvent,
+  type WebhookEventConstant,
+} from './webhook-events'

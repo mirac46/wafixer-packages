@@ -4,10 +4,18 @@ import type {
   MessageKey,
   Presence,
 } from './common'
+import type { QuickReply } from './contracts'
 
 // ────────────────── SEND TEXT ──────────────────
 export interface SendTextInput extends BaseSendInput {
   text: string
+  /** Messenger/Instagram: en çok 13 hızlı yanıt, `title` en çok 20 karakter. */
+  quickReplies?: QuickReply[]
+  /**
+   * Messenger/Instagram: yanıtı bir insan temsilci elle yazdı. 24 saat penceresi kapalıysa son
+   * gelen mesajdan 7 gün içinde `HUMAN_AGENT` etiketiyle gider. Otomasyon ve AI Agent göndermez.
+   */
+  humanAgent?: boolean
 }
 
 // ────────────────── SEND MEDIA ──────────────────

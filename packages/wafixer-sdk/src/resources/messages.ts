@@ -33,7 +33,10 @@ export class Messages {
   }
 
   // ── TEXT ────────────────────────────────────────────────────────────────
-  /** Düz metin mesajı gönder. */
+  /**
+   * Düz metin mesajı gönder. Messenger/Instagram'da `quickReplies` ve `humanAgent` kullanılabilir;
+   * 24 saat penceresi kapalıysa `WafixerWindowClosedError` fırlar.
+   */
   public async sendText<T = unknown>(instance: string, input: SendTextInput): Promise<T> {
     return this.client.request<T>({
       method: 'POST',
@@ -213,7 +216,7 @@ export class Messages {
    */
   public async replyTo<T = unknown>(
     event: { instance: string; data: MessageData },
-    input: { text: string; mentioned?: string[]; delay?: number },
+    input: Pick<SendTextInput, 'text' | 'mentioned' | 'delay' | 'quickReplies' | 'humanAgent'>,
   ): Promise<T> {
     const remoteJid = event.data.key.remoteJid
     const number = remoteJid.split('@')[0]
@@ -222,6 +225,8 @@ export class Messages {
       text: input.text,
       mentioned: input.mentioned,
       delay: input.delay,
+      quickReplies: input.quickReplies,
+      humanAgent: input.humanAgent,
       quoted: {
         key: event.data.key,
         message: event.data.message ?? {},
