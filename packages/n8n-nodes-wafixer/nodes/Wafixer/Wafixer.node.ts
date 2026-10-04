@@ -8,8 +8,34 @@ import type {
 } from 'n8n-workflow'
 import { NodeOperationError } from 'n8n-workflow'
 
-import { Wafixer as WafixerClient } from 'wafixer-sdk'
+import { Wafixer as WafixerClient, type QuickReply } from 'wafixer-sdk'
+import { errorOutput, toNodeError } from '../shared/errors'
 import { wafixerLoadOptions } from '../shared/instanceOptions'
+import { executeCommentOperation } from './actions/comment'
+import { executeLeadOperation } from './actions/lead'
+import { commentFields, commentOperations } from './descriptions/CommentDescription'
+import { leadFields, leadOperations } from './descriptions/LeadDescription'
+
+type QuickReplyRow = { title?: string; payload?: string; type?: QuickReply['type'] }
+type MetaOptionsParameter = { humanAgent?: boolean; quickReplies?: { reply?: QuickReplyRow[] } }
+
+/** Messenger/Instagram metin seçenekleri; WhatsApp oturumunda sunucu bu alanları yok sayar. */
+function metaTextOptions(options: MetaOptionsParameter): {
+  humanAgent?: boolean
+  quickReplies?: QuickReply[]
+} {
+  const quickReplies = (options.quickReplies?.reply ?? [])
+    .filter((row) => row.title?.trim())
+    .map((row) => ({
+      title: row.title?.trim() ?? '',
+      ...(row.payload ? { payload: row.payload } : {}),
+      ...(row.type && row.type !== 'text' ? { type: row.type } : {}),
+    }))
+  return {
+    ...(options.humanAgent ? { humanAgent: true } : {}),
+    ...(quickReplies.length ? { quickReplies } : {}),
+  }
+}
 
 export class Wafixer implements INodeType {
   methods: {
@@ -24,8 +50,8 @@ export class Wafixer implements INodeType {
     icon: 'file:wafixer.svg',
     group: ['transform'],
     version: 1,
-    subtitle: '={{$parameter["operation"]}}',
-    description: 'WhatsApp mesajları gönder (WAFixer)',
+    subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
+    description: 'Send WhatsApp, Messenger and Instagram messages, reply to comments and manage Facebook leads',
     defaults: {
       name: 'WAFixer',
     },
@@ -52,27 +78,42 @@ export class Wafixer implements INodeType {
           'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
       },
 
+      // ─────────── Resource ───────────
+      {
+        displayName: 'Resource',
+        name: 'resource',
+        type: 'options',
+        noDataExpression: true,
+        default: 'message',
+        options: [
+          { name: 'Comment', value: 'comment', description: 'Facebook Page and Instagram comments' },
+          { name: 'Lead', value: 'lead', description: 'Facebook Lead Ads leads and forms' },
+          { name: 'Message', value: 'message', description: 'WhatsApp, Messenger and Instagram messages' },
+        ],
+      },
+
       // ─────────── Operation ───────────
       {
         displayName: 'Operation',
         name: 'operation',
         type: 'options',
         noDataExpression: true,
+        displayOptions: { show: { resource: ['message'] } },
         default: 'sendText',
         options: [
-          { name: 'Mark as Read', value: 'markAsRead', description: 'Mesajları okundu işaretle (mavi tik)', action: 'Mark messages as read' },
-          { name: 'Reply to Message', value: 'replyTo', description: 'Webhook event\'inden gelen mesaja alıntılı yanıt ver', action: 'Reply to a message' },
-          { name: 'Send Audio (PTT)', value: 'sendAudio', description: 'Sesli mesaj (push-to-talk) gönder', action: 'Send a voice note' },
-          { name: 'Send Buttons', value: 'sendButtons', description: 'Butonlu interaktif mesaj', action: 'Send a buttons message' },
-          { name: 'Send Contact', value: 'sendContact', description: 'Kişi kartı paylaş', action: 'Send a contact card' },
-          { name: 'Send List', value: 'sendList', description: 'Listeli interaktif mesaj', action: 'Send a list message' },
-          { name: 'Send Location', value: 'sendLocation', description: 'Konum paylaş', action: 'Send a location' },
-          { name: 'Send Media', value: 'sendMedia', description: 'Resim, video, döküman veya audio gönder', action: 'Send a media file' },
-          { name: 'Send Poll', value: 'sendPoll', description: 'Anket mesajı', action: 'Send a poll' },
-          { name: 'Send Presence', value: 'sendPresence', description: 'Yazıyor / kaydediyor / online göstergesi', action: 'Send a presence indicator' },
-          { name: 'Send Reaction', value: 'sendReaction', description: 'Bir mesaja emoji reaksiyon ekle', action: 'Send a reaction' },
-          { name: 'Send Sticker', value: 'sendSticker', description: 'Sticker gönder', action: 'Send a sticker' },
-          { name: 'Send Text', value: 'sendText', description: 'Düz metin mesajı gönder', action: 'Send a text message' },
+          { name: 'Mark as Read', value: 'markAsRead', description: 'Mark messages as read (blue ticks on WhatsApp)', action: 'Mark messages as read' },
+          { name: 'Reply to Message', value: 'replyTo', description: 'Reply to the message of a trigger event, quoting it', action: 'Reply to a message' },
+          { name: 'Send Audio (PTT)', value: 'sendAudio', description: 'Send a push-to-talk voice note', action: 'Send a voice note' },
+          { name: 'Send Buttons', value: 'sendButtons', description: 'Send an interactive message with buttons', action: 'Send a buttons message' },
+          { name: 'Send Contact', value: 'sendContact', description: 'Share a contact card', action: 'Send a contact card' },
+          { name: 'Send List', value: 'sendList', description: 'Send an interactive list message', action: 'Send a list message' },
+          { name: 'Send Location', value: 'sendLocation', description: 'Share a location', action: 'Send a location' },
+          { name: 'Send Media', value: 'sendMedia', description: 'Send an image, video, document or audio file', action: 'Send a media file' },
+          { name: 'Send Poll', value: 'sendPoll', description: 'Send a poll', action: 'Send a poll' },
+          { name: 'Send Presence', value: 'sendPresence', description: 'Show typing, recording or online status', action: 'Send a presence indicator' },
+          { name: 'Send Reaction', value: 'sendReaction', description: 'React to a message with an emoji', action: 'Send a reaction' },
+          { name: 'Send Sticker', value: 'sendSticker', description: 'Send a sticker', action: 'Send a sticker' },
+          { name: 'Send Text', value: 'sendText', description: 'Send a plain text message', action: 'Send a text message' },
         ],
       },
 
@@ -86,7 +127,8 @@ export class Wafixer implements INodeType {
         default: '',
         required: true,
         placeholder: '905321788329',
-        description: 'Hedef telefon numarası (uluslararası kod ile, başında + veya 0 olmadan)',
+        description:
+          'WhatsApp: phone number with country code, without + or leading 0. Messenger/Instagram: the part of data.key.remoteJid before @ (PSID/IGSID).',
         displayOptions: {
           show: {
             operation: [
@@ -156,7 +198,7 @@ export class Wafixer implements INodeType {
         name: 'fileName',
         type: 'string',
         default: '',
-        description: 'Sadece document için',
+        description: 'Only for documents',
         displayOptions: { show: { operation: ['sendMedia'], mediatype: ['document'] } },
       },
 
@@ -255,7 +297,7 @@ export class Wafixer implements INodeType {
         default:
           '={{ { remoteJid: $json["data"]["key"]["remoteJid"], fromMe: $json["data"]["key"]["fromMe"], id: $json["data"]["key"]["id"] } }}',
         required: true,
-        description: 'Reaksiyon eklenecek mesajın key objesi. Trigger node\'undan gelir.',
+        description: 'Key of the message to react to. Comes from the trigger node.',
         displayOptions: { show: { operation: ['sendReaction'] } },
       },
       {
@@ -263,7 +305,7 @@ export class Wafixer implements INodeType {
         name: 'reaction',
         type: 'string',
         default: '👍',
-        placeholder: '👍 (boş bırakılırsa kaldırılır)',
+        placeholder: '👍 (leave empty to remove the reaction)',
         displayOptions: { show: { operation: ['sendReaction'] } },
       },
 
@@ -293,7 +335,7 @@ export class Wafixer implements INodeType {
         name: 'pollSelectableCount',
         type: 'number',
         default: 1,
-        description: 'Kullanıcı kaç seçenek seçebilsin (1 = tek seçim)',
+        description: 'How many options a person can choose (1 = single choice)',
         displayOptions: { show: { operation: ['sendPoll'] } },
       },
 
@@ -409,7 +451,7 @@ export class Wafixer implements INodeType {
         type: 'json',
         default: '={{ $json }}',
         required: true,
-        description: 'Trigger node\'dan gelen tam event payload\'u',
+        description: 'Full event payload from the trigger node',
         displayOptions: { show: { operation: ['replyTo'] } },
       },
       {
@@ -432,7 +474,7 @@ export class Wafixer implements INodeType {
         default:
           '={{ [ { remoteJid: $json["data"]["key"]["remoteJid"], fromMe: $json["data"]["key"]["fromMe"], id: $json["data"]["key"]["id"] } ] }}',
         required: true,
-        description: 'Okundu işaretlenecek mesaj key\'leri',
+        description: 'Keys of the messages to mark as read',
         displayOptions: { show: { operation: ['markAsRead'] } },
       },
 
@@ -445,11 +487,11 @@ export class Wafixer implements INodeType {
         type: 'options',
         default: 'composing',
         options: [
-          { name: 'Available', value: 'available', description: 'Online göster' },
-          { name: 'Composing', value: 'composing', description: '"yazıyor..." göstergesi' },
-          { name: 'Paused', value: 'paused', description: 'Yazımı bıraktı' },
-          { name: 'Recording', value: 'recording', description: 'Sesli mesaj kaydediyor' },
-          { name: 'Unavailable', value: 'unavailable', description: 'Çevrimdışı göster' },
+          { name: 'Available', value: 'available', description: 'Show as online' },
+          { name: 'Composing', value: 'composing', description: 'Show the typing indicator' },
+          { name: 'Paused', value: 'paused', description: 'Stop the typing indicator' },
+          { name: 'Recording', value: 'recording', description: 'Show the recording indicator' },
+          { name: 'Unavailable', value: 'unavailable', description: 'Show as offline' },
         ],
         displayOptions: { show: { operation: ['sendPresence'] } },
       },
@@ -496,6 +538,75 @@ export class Wafixer implements INodeType {
           },
         ],
       },
+
+      // ────────────────────────────────────────────────────────────────
+      // Messenger / Instagram: sendText, replyTo
+      // ────────────────────────────────────────────────────────────────
+      {
+        displayName: 'Messenger / Instagram Options',
+        name: 'metaOptions',
+        type: 'collection',
+        placeholder: 'Add Option',
+        default: {},
+        displayOptions: { show: { resource: ['message'], operation: ['sendText', 'replyTo'] } },
+        options: [
+          {
+            displayName: 'Human Agent',
+            name: 'humanAgent',
+            type: 'boolean',
+            default: false,
+            description:
+              'Whether a person wrote this reply by hand. Allows replying up to 7 days after the last message when the 24-hour window is closed. Never enable it for automated replies.',
+          },
+          {
+            displayName: 'Quick Replies',
+            name: 'quickReplies',
+            type: 'fixedCollection',
+            typeOptions: { multipleValues: true },
+            default: {},
+            placeholder: 'Add Quick Reply',
+            description: 'Up to 13 buttons shown under the message',
+            options: [
+              {
+                name: 'reply',
+                displayName: 'Quick Reply',
+                values: [
+                  {
+                    displayName: 'Title',
+                    name: 'title',
+                    type: 'string',
+                    default: '',
+                    description: 'Button text, up to 20 characters',
+                  },
+                  {
+                    displayName: 'Payload',
+                    name: 'payload',
+                    type: 'string',
+                    default: '',
+                    description: 'Returned in data.message.buttonsResponseMessage.selectedButtonId when tapped',
+                  },
+                  {
+                    displayName: 'Type',
+                    name: 'type',
+                    type: 'options',
+                    default: 'text',
+                    options: [
+                      { name: 'Text', value: 'text' },
+                      { name: 'User Email', value: 'user_email' },
+                      { name: 'User Phone Number', value: 'user_phone_number' },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+
+      ...commentOperations,
+      ...commentFields,
+      ...leadOperations,
+      ...leadFields,
     ],
   }
 
@@ -514,8 +625,18 @@ export class Wafixer implements INodeType {
 
     for (let i = 0; i < items.length; i++) {
       try {
+        const resource = this.getNodeParameter('resource', i, 'message') as string
         const operation = this.getNodeParameter('operation', i) as string
         const instance = this.getNodeParameter('instance', i) as string
+
+        if (resource === 'comment' || resource === 'lead') {
+          const rows =
+            resource === 'comment'
+              ? await executeCommentOperation(this, wa, instance, operation, i)
+              : await executeLeadOperation(this, wa, instance, operation, i)
+          returnData.push(...rows.map((json) => ({ json, pairedItem: { item: i } })))
+          continue
+        }
 
         const additional = (this.getNodeParameter('additional', i, {}) as {
           delay?: number
@@ -537,7 +658,8 @@ export class Wafixer implements INodeType {
           case 'sendText': {
             const number = this.getNodeParameter('number', i) as string
             const text = this.getNodeParameter('text', i) as string
-            result = await wa.messages.sendText(instance, { number, text, ...baseExtras })
+            const metaOptions = metaTextOptions(this.getNodeParameter('metaOptions', i, {}) as MetaOptionsParameter)
+            result = await wa.messages.sendText(instance, { number, text, ...baseExtras, ...metaOptions })
             break
           }
 
@@ -707,10 +829,11 @@ export class Wafixer implements INodeType {
               }
             }
             const text = this.getNodeParameter('replyText', i) as string
+            const metaOptions = metaTextOptions(this.getNodeParameter('metaOptions', i, {}) as MetaOptionsParameter)
             const targetInstance = event?.instance ?? instance
             result = await wa.messages.replyTo(
               { instance: targetInstance, data: event.data as never },
-              { text },
+              { text, ...metaOptions },
             )
             break
           }
@@ -741,7 +864,7 @@ export class Wafixer implements INodeType {
           default:
             throw new NodeOperationError(
               this.getNode(),
-              `Bilinmeyen operation: ${operation}`,
+              `Unknown operation: ${operation}`,
               { itemIndex: i },
             )
         }
@@ -749,15 +872,10 @@ export class Wafixer implements INodeType {
         returnData.push({ json: (result ?? {}) as INodeExecutionData['json'] })
       } catch (error) {
         if (this.continueOnFail()) {
-          returnData.push({
-            json: {
-              error: error instanceof Error ? error.message : String(error),
-            },
-            pairedItem: i,
-          })
+          returnData.push({ json: errorOutput(error), pairedItem: i })
           continue
         }
-        throw error
+        throw toNodeError(this.getNode(), error, i)
       }
     }
 

@@ -17,7 +17,7 @@ export class WafixerApi implements ICredentialType {
       type: 'string',
       default: 'https://wafixer.com',
       placeholder: 'https://wafixer.com',
-      description: 'WAFixer kurulumunun ana URL\'i (sondaki / olmadan).',
+      description: 'Base URL of the WAFixer installation, without a trailing slash',
       required: true,
     },
     {
@@ -26,7 +26,7 @@ export class WafixerApi implements ICredentialType {
       type: 'string',
       typeOptions: { password: true },
       default: '',
-      description: 'Panel "Ayarlar > API" sayfasındaki global API key.',
+      description: 'API key from WAFixer panel → Settings → API Keys (starts with wfx_)',
       required: true,
     },
   ]

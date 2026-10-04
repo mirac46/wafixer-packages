@@ -10,6 +10,13 @@ type WafixerCredentials = {
   apiKey: string
 }
 
+const META_CHANNEL_LABELS: Record<string, string> = { MESSENGER: 'Messenger', INSTAGRAM: 'Instagram' }
+
+// Eski sunucular `channel` alanını döndürmez; o durumda entegrasyon adına bakılır.
+function metaChannelLabel(instance: WafixerInstance): string | null {
+  return META_CHANNEL_LABELS[instance.channel ?? instance.integration ?? ''] ?? null
+}
+
 function normalizePhone(instance: WafixerInstance): string | null {
   return instance.number ?? instance.ownerJid?.replace(/@.+$/, '') ?? null
 }
@@ -17,6 +24,7 @@ function normalizePhone(instance: WafixerInstance): string | null {
 function statusLabel(instance: WafixerInstance): string {
   if (instance.connectionStatus === 'open') return 'Active'
   if (instance.integration === 'WHATSAPP-BAILEYS') return 'QR Required'
+  if (metaChannelLabel(instance)) return 'Reconnect Required'
   if (instance.connectionStatus === 'connecting') return 'Connecting'
   return 'Not Active'
 }
@@ -28,9 +36,10 @@ function sortInstances(a: WafixerInstance, b: WafixerInstance): number {
 
 function toOption(instance: WafixerInstance): INodePropertyOptions {
   const label = statusLabel(instance)
-  const phone = normalizePhone(instance)
+  // Messenger/Instagram'da telefon yok; ad yanında kanal gösterilir.
+  const suffix = metaChannelLabel(instance) ?? normalizePhone(instance)
   const profile = instance.profileName ? `${instance.profileName} / ` : ''
-  const detail = phone ? ` (${phone})` : ''
+  const detail = suffix ? ` (${suffix})` : ''
 
   return {
     name: `${label} - ${profile}${instance.name}${detail}`,
