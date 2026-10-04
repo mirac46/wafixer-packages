@@ -13,13 +13,13 @@ WAFixer ekosistemi için resmi paket monorepo'su. Sürüm geçmişi ve yayın no
 
 | Paket | Versiyon | Ne işe yarar |
 |---|---|---|
-| [`wafixer-sdk`](./packages/wafixer-sdk) | 0.1.2 | TypeScript SDK — herhangi bir Node.js projesinden mesaj gönderme |
-| [`n8n-nodes-wafixer`](./packages/n8n-nodes-wafixer) | 0.1.2 | n8n community nodes — drag-and-drop entegrasyon |
+| [`wafixer-sdk`](./packages/wafixer-sdk) | 0.2.0 | TypeScript SDK — WhatsApp, Messenger ve Instagram mesajları, Facebook/Instagram yorumları, Facebook Lead Ads, webhook olay tipleri |
+| [`n8n-nodes-wafixer`](./packages/n8n-nodes-wafixer) | 0.2.0 | n8n community nodes — mesaj, yorum ve lead işlemleri; mesaj, yorum, lead ve bağlantı olaylarıyla tetikleyici |
 
 ## Sürümler
 
-Her paketin sürümü kendi `package.json`'ındadır ve etiketi paket başınadır: `wafixer-sdk@0.1.2`,
-`n8n-nodes-wafixer@0.1.2`. Ayrıntı: [RELEASING.md](./RELEASING.md).
+Her paketin sürümü kendi `package.json`'ındadır ve etiketi paket başınadır: `wafixer-sdk@0.2.0`,
+`n8n-nodes-wafixer@0.2.0`. Ayrıntı: [RELEASING.md](./RELEASING.md).
 
 `main`'e gelen her push'ta [`release.yml`](.github/workflows/release.yml) iki paketin sürümünü okur. Etiketi
 olmayan paketi npm'e yayınlar (önce `wafixer-sdk`), `<paket>@<sürüm>` etiketini ve Türkçe yayın notlu GitHub

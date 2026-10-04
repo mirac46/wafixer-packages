@@ -1,6 +1,7 @@
 # n8n-nodes-wafixer
 
-WAFixer için **n8n community nodes** — gelen WhatsApp mesajlarını dinle, otomatik mesaj/medya gönder. Trigger ve action node'larıyla iki tıklamada akış kur.
+WAFixer için **n8n community nodes** — WhatsApp, Messenger ve Instagram mesajlarını dinle ve yanıtla, Facebook/Instagram
+yorumlarına yanıt ver, Facebook Lead Ads lead'lerini işle. Trigger ve action node'larıyla iki tıklamada akış kur.
 
 ## Kurulum
 
@@ -33,7 +34,9 @@ n8n'i yeniden başlat. Node panelinde "WAFixer" ve "WAFixer Trigger" görünecek
 
 ## Node 1: WAFixer (Action)
 
-Bir akışın içinde WhatsApp mesajı gönderir. **13 operation:**
+Üç kaynak (**Resource**): Message, Comment, Lead. Eski akışlar değişmeden **Message** kaynağında çalışır.
+
+### Message — 13 operation
 
 | Operation | Ne yapar |
 |---|---|
@@ -51,7 +54,40 @@ Bir akışın içinde WhatsApp mesajı gönderir. **13 operation:**
 | **Mark as Read** | Mesajları okundu işaretle |
 | **Send Presence** | "Yazıyor / kaydediyor / online" |
 
-**Session** → credential'daki API key ile erişilebilen WAFixer oturumları listeden seçilir. `Active` oturumlar çalışmaya hazırdır; `QR Required` oturumlar önce WAFixer panelinden yeniden bağlanmalıdır.
+**Messenger / Instagram Options** (Send Text, Reply to Message):
+- **Quick Replies** — mesajın altında en çok 13 düğme; dokunulan düğme trigger'da
+  `data.message.buttonsResponseMessage.selectedButtonId` olarak gelir.
+- **Human Agent** — yanıtı bir kişi elle yazdıysa açılır; 24 saat penceresi kapalıyken son mesajdan 7 güne kadar
+  gönderim sağlar. Otomatik yanıtlarda açılmaz.
+
+Messenger/Instagram'da **Number** alanı PSID/IGSID'dir: trigger'daki `data.key.remoteJid`'in `@` öncesi.
+Kanalda olmayan işlem (Send List, Send Location…) açıklamalı bir hata verir.
+
+### Comment — Facebook Sayfa ve Instagram yorumları
+
+Facebook yorumları Sayfanın Messenger oturumunda, Instagram yorumları Instagram oturumunda.
+
+| Operation | Ne yapar |
+|---|---|
+| **Get Many** | Yorumları yeniden eskiye listeler; her yorum gönderi özetiyle (`post`) tek öğe. Filtreler: Post ID, Parent Comment ID, Status, Top-Level Only, Unread Only, Since, Until |
+| **Reply** | Yoruma herkese açık yanıt (Sayfa/hesap adına) |
+| **Mark as Read** | Belirli yorumlar, bir gönderinin yorumları ya da hepsi |
+| **Import** | Bir gönderinin yorum geçmişini içe aktarır (içe aktarılanlar için trigger olayı gelmez) |
+
+### Lead — Facebook Lead Ads
+
+| Operation | Ne yapar |
+|---|---|
+| **Get Many** | Lead'leri listeler. Filtreler: Status (çoklu), Fetch Status, Form ID, Page ID, Unread Only, Since, Until, Updated Since |
+| **Get** | Tek lead |
+| **Update** | Status (`new`, `contacted`, `qualified`, `discarded`), Note, Read |
+| **Get Forms** | Lead formları; **Sync From Meta** ile önce Meta'dan yeniden okur |
+
+**Comment ID** ve **Lead ID** alanları varsayılan olarak trigger olayından ya da listelenen öğeden dolar.
+
+**Session** → credential'daki API key ile erişilebilen WAFixer oturumları listeden seçilir; Messenger ve Instagram
+oturumlarının yanında kanal yazar (`Active - Klinik (Messenger)`). `Active` oturumlar çalışmaya hazırdır;
+`QR Required` ve `Reconnect Required` oturumlar önce WAFixer panelinden yeniden bağlanmalıdır.
 
 ## Node 2: WAFixer Trigger
 
@@ -61,12 +97,18 @@ Bir WAFixer instance'ında belirli olaylar gerçekleştiğinde akışı **otomat
 - New Message (`messages.upsert`) — gelen mesaj
 - Outgoing Message (`send.message`) — senin gönderdiğin mesaj
 - Message Status (`messages.update`) — okundu / teslim edildi
-- Connection State — bağlandı / koptu
+- Connection State (`connection.update`) — bağlandı / koptu; Messenger/Instagram'da `data.reason`:
+  `token_invalid`, `subscription_lost`, `revoked`
+- Comment Received / Updated / Removed / Reply Sent (`comment.*`) — Facebook ve Instagram yorumları
+- Lead Received / Updated (`lead.*`) — Facebook Lead Ads
 - Yeni kişi, yeni grup, üye ekle/çıkar, çağrı, vb.
 
 **Options:**
+- **Channels** — yalnız seçilen kanalların olayları (WhatsApp, Messenger, Instagram); boşsa hepsi
 - **Send Media as Base64** — medyayı payload içine gömer (büyük payload, ama harici URL gerekmez)
 - **Ignore Outgoing Messages** — kendi gönderdiğin mesajları filtreler
+
+Olaylar en az bir kez teslim edilir; yorumları `data.comment.id`, lead'leri `data.id` ile tekilleştir.
 
 ## Tipik Akış: Otomatik Yanıt Botu
 
@@ -88,22 +130,20 @@ Trigger node'un çıktısı ile Reply node'u sıralı bağlandığında, **Webho
 
 ## Versiyonlama
 
-`0.x` sürümleri alpha'dır; API yüzeyi stabilleşince `1.0.0`'a geçilir. Tam liste:
-[Releases](https://github.com/mirac46/wafixer-packages/releases).
-
-### 0.1.2
-
-- **Session** alanı serbest metin yerine listeden seçilir: credential'daki API key'in erişebildiği oturumlar
-  durumlarıyla (`Active`, `QR Required`, `Connecting`, `Not Active`) listelenir; ifade (expression) ile ad vermek
-  hâlâ mümkün. Action ve Trigger node'larında aynı.
-- `wafixer-sdk` bağımlılığı `^0.1.2`: **Send Location** yer adı / adres, **Send List** footer boş bırakıldığında
-  istek artık 400 dönmüyor.
+`0.x` sürümleri alpha'dır; API yüzeyi stabilleşince `1.0.0`'a geçilir. Değişiklikler:
+[CHANGELOG.md](./CHANGELOG.md) ve [Releases](https://github.com/mirac46/wafixer-packages/releases).
 
 ## Sorun giderme
 
 **"Bu kanalda yetkin yok"**: API key panel'in global key'i mi, yoksa instance-specific token mu? Global olmalı.
 
 **Trigger çalışmıyor**: Workflow'un **active** olması gerek (sağ üst toggle). Ayrıca WAFixer panelinden o instance'ın webhook ayarı el ile değiştirilmemeli — Trigger node otomatik yönetir.
+
+**"24-hour messaging window is closed"**: Messenger/Instagram'da kullanıcının son mesajından 24 saat geçti.
+Kişi elle yanıt veriyorsa **Human Agent** açılabilir (7 güne kadar); otomasyon kullanıcının yeniden yazmasını bekler.
+
+**"missing permissions"** (yorum/lead): Meta bağlantısı gereken izinleri içermiyor; oturumu WAFixer panelinden
+yeniden bağla. Lead'lerde Business Suite → Lead Erişimi ayarını da kontrol et.
 
 **"Etkinliğe göre URL" konfüzyonu**: Trigger node `byEvents=false` set eder, kafa karışmasın diye.
 
