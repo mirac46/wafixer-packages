@@ -260,6 +260,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/comment/hide/{instance}/{commentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Yorumu gizler ya da yeniden gösterir (Facebook is_hidden, Instagram hide); Sayfanın/hesabın kendi yorumu gizlenemez */
+        post: operations["commentHide"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/comment/delete/{instance}/{commentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Yorumu Meta üzerinde siler; kayıt removed durumuna geçer (satır silinmez), üst düzey yorumun yanıtları da */
+        delete: operations["commentDelete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/comment/privateReply/{instance}/{commentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Yorum sahibine özel (DM) yanıt: yorumdan sonraki 7 gün içinde, yorum başına bir kez; mesaj sohbete fromMe olarak yazılır */
+        post: operations["commentPrivateReply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/leads/config/{instance}": {
         parameters: {
             query?: never;
@@ -726,7 +777,7 @@ export interface webhooks {
         };
         get?: never;
         put?: never;
-        /** Yorum silindi; data: MetaCommentEventData */
+        /** Yorum silindi (data.reason: deleted_by_owner | removed_on_meta); data: MetaCommentEventData */
         post: {
             parameters: {
                 query?: never;
@@ -765,6 +816,44 @@ export interface webhooks {
         get?: never;
         put?: never;
         /** Sayfanın/hesabın yanıtı (sentByApi: API ya da Meta arayüzü); data: MetaCommentReplyEventData */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["WebhookEnvelope"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "comment.private_reply.sent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Yorum sahibine özel (DM) yanıt gönderildi; data: MetaCommentPrivateReplyEventData */
         post: {
             parameters: {
                 query?: never;
@@ -1147,6 +1236,8 @@ export interface components {
             sentByApi: boolean;
             read: boolean;
             readAt: string | null;
+            /** @description Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir */
+            privateReplyAt: string | null;
             createdAt: string;
             editedAt: string | null;
             removedAt: string | null;
@@ -1208,6 +1299,8 @@ export interface components {
                 sentByApi: boolean;
                 read: boolean;
                 readAt: string | null;
+                /** @description Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir */
+                privateReplyAt: string | null;
                 createdAt: string;
                 editedAt: string | null;
                 removedAt: string | null;
@@ -1251,6 +1344,8 @@ export interface components {
                 sentByApi: boolean;
                 read: boolean;
                 readAt: string | null;
+                /** @description Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir */
+                privateReplyAt: string | null;
                 createdAt: string;
                 editedAt: string | null;
                 removedAt: string | null;
@@ -1291,6 +1386,8 @@ export interface components {
                 sentByApi: boolean;
                 read: boolean;
                 readAt: string | null;
+                /** @description Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir */
+                privateReplyAt: string | null;
                 createdAt: string;
                 editedAt: string | null;
                 removedAt: string | null;
@@ -1320,6 +1417,8 @@ export interface components {
                 sentByApi: boolean;
                 read: boolean;
                 readAt: string | null;
+                /** @description Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir */
+                privateReplyAt: string | null;
                 createdAt: string;
                 editedAt: string | null;
                 removedAt: string | null;
@@ -1355,6 +1454,8 @@ export interface components {
                 sentByApi: boolean;
                 read: boolean;
                 readAt: string | null;
+                /** @description Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir */
+                privateReplyAt: string | null;
                 createdAt: string;
                 editedAt: string | null;
                 removedAt: string | null;
@@ -1439,6 +1540,8 @@ export interface components {
                 sentByApi: boolean;
                 read: boolean;
                 readAt: string | null;
+                /** @description Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir */
+                privateReplyAt: string | null;
                 createdAt: string;
                 editedAt: string | null;
                 removedAt: string | null;
@@ -1454,8 +1557,16 @@ export interface components {
                 postedAt: string | null;
                 lastCommentAt: string | null;
             } | null;
-            /** @enum {string} */
+            /**
+             * @description Yalnız comment.updated
+             * @enum {string}
+             */
             change?: "edited" | "hidden" | "unhidden";
+            /**
+             * @description Yalnız comment.removed
+             * @enum {string}
+             */
+            reason?: "deleted_by_owner" | "removed_on_meta";
         };
         MetaCommentReplyEventData: {
             comment: {
@@ -1483,6 +1594,8 @@ export interface components {
                 sentByApi: boolean;
                 read: boolean;
                 readAt: string | null;
+                /** @description Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir */
+                privateReplyAt: string | null;
                 createdAt: string;
                 editedAt: string | null;
                 removedAt: string | null;
@@ -1499,6 +1612,153 @@ export interface components {
                 postedAt: string | null;
                 lastCommentAt: string | null;
             } | null;
+        };
+        MetaCommentHideRequest: {
+            /** @description true gizler, false yeniden gösterir */
+            hidden: boolean;
+        };
+        MetaCommentModerationResponse: {
+            comment: {
+                /** @description Meta yorum kimliği */
+                id: string;
+                /** @enum {string} */
+                platform: "FACEBOOK" | "INSTAGRAM";
+                /** @description Facebook Sayfa kimliği ya da Instagram profesyonel hesap kimliği */
+                accountId: string;
+                /** @description Facebook gönderi kimliği ya da Instagram medya kimliği */
+                postId: string;
+                /** @description Yanıtın bağlı olduğu üst düzey yorum; gönderiye yazılan yorumda null */
+                parentId: string | null;
+                author: {
+                    id: string | null;
+                    name: string | null;
+                } | null;
+                text: string | null;
+                /** @enum {string} */
+                status: "active" | "removed";
+                hidden: boolean;
+                /** @description Yazar bağlı Sayfa ya da Instagram hesabının kendisi; otomatik yanıt verilmez */
+                fromOwner: boolean;
+                /** @description Yanıt wafixer API üzerinden gönderildi */
+                sentByApi: boolean;
+                read: boolean;
+                readAt: string | null;
+                /** @description Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir */
+                privateReplyAt: string | null;
+                createdAt: string;
+                editedAt: string | null;
+                removedAt: string | null;
+            };
+            /** @description false: yorum zaten istenen durumdaydı, olay yayınlanmadı */
+            changed: boolean;
+        };
+        MetaCommentPrivateReplyRequest: {
+            /** @description Facebook en çok 2000 karakter, Instagram en çok 1000 bayt */
+            text: string;
+        };
+        MetaCommentPrivateMessage: {
+            /** @description Meta mesaj kimliği (mid); sohbetteki mesaj anahtarı */
+            id: string;
+            /** @description Sohbet kimliği ({psid}@messenger ya da {igsid}@instagram); Meta alıcı kimliği döndürmezse null */
+            remoteJid: string | null;
+            text: string;
+            /** @description Unix saniye */
+            timestamp: number;
+        };
+        MetaCommentPrivateReplyResponse: {
+            comment: {
+                /** @description Meta yorum kimliği */
+                id: string;
+                /** @enum {string} */
+                platform: "FACEBOOK" | "INSTAGRAM";
+                /** @description Facebook Sayfa kimliği ya da Instagram profesyonel hesap kimliği */
+                accountId: string;
+                /** @description Facebook gönderi kimliği ya da Instagram medya kimliği */
+                postId: string;
+                /** @description Yanıtın bağlı olduğu üst düzey yorum; gönderiye yazılan yorumda null */
+                parentId: string | null;
+                author: {
+                    id: string | null;
+                    name: string | null;
+                } | null;
+                text: string | null;
+                /** @enum {string} */
+                status: "active" | "removed";
+                hidden: boolean;
+                /** @description Yazar bağlı Sayfa ya da Instagram hesabının kendisi; otomatik yanıt verilmez */
+                fromOwner: boolean;
+                /** @description Yanıt wafixer API üzerinden gönderildi */
+                sentByApi: boolean;
+                read: boolean;
+                readAt: string | null;
+                /** @description Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir */
+                privateReplyAt: string | null;
+                createdAt: string;
+                editedAt: string | null;
+                removedAt: string | null;
+            };
+            message: {
+                /** @description Meta mesaj kimliği (mid); sohbetteki mesaj anahtarı */
+                id: string;
+                /** @description Sohbet kimliği ({psid}@messenger ya da {igsid}@instagram); Meta alıcı kimliği döndürmezse null */
+                remoteJid: string | null;
+                text: string;
+                /** @description Unix saniye */
+                timestamp: number;
+            };
+        };
+        MetaCommentPrivateReplyEventData: {
+            comment: {
+                /** @description Meta yorum kimliği */
+                id: string;
+                /** @enum {string} */
+                platform: "FACEBOOK" | "INSTAGRAM";
+                /** @description Facebook Sayfa kimliği ya da Instagram profesyonel hesap kimliği */
+                accountId: string;
+                /** @description Facebook gönderi kimliği ya da Instagram medya kimliği */
+                postId: string;
+                /** @description Yanıtın bağlı olduğu üst düzey yorum; gönderiye yazılan yorumda null */
+                parentId: string | null;
+                author: {
+                    id: string | null;
+                    name: string | null;
+                } | null;
+                text: string | null;
+                /** @enum {string} */
+                status: "active" | "removed";
+                hidden: boolean;
+                /** @description Yazar bağlı Sayfa ya da Instagram hesabının kendisi; otomatik yanıt verilmez */
+                fromOwner: boolean;
+                /** @description Yanıt wafixer API üzerinden gönderildi */
+                sentByApi: boolean;
+                read: boolean;
+                readAt: string | null;
+                /** @description Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir */
+                privateReplyAt: string | null;
+                createdAt: string;
+                editedAt: string | null;
+                removedAt: string | null;
+            };
+            post: {
+                id: string;
+                /** @enum {string} */
+                platform: "FACEBOOK" | "INSTAGRAM";
+                accountId: string;
+                permalink: string | null;
+                messagePreview: string | null;
+                mediaType: string | null;
+                postedAt: string | null;
+                lastCommentAt: string | null;
+            } | null;
+            message: {
+                /** @description Meta mesaj kimliği (mid); sohbetteki mesaj anahtarı */
+                id: string;
+                /** @description Sohbet kimliği ({psid}@messenger ya da {igsid}@instagram); Meta alıcı kimliği döndürmezse null */
+                remoteJid: string | null;
+                text: string;
+                /** @description Unix saniye */
+                timestamp: number;
+            };
         };
         /** @enum {string} */
         LeadStatus: "new" | "contacted" | "qualified" | "discarded";
@@ -3122,6 +3382,308 @@ export interface operations {
             };
             /** @description Bağlantı geçersiz ya da yorum silinmiş */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description İstek sınırı; Retry-After başlığı */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Meta beklenmeyen bir hata döndürdü */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Yorum kayıtları bu sunucuda etkin değil (CHANNEL_NOT_CONFIGURED) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+        };
+    };
+    commentHide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                instance: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MetaCommentHideRequest"];
+            };
+        };
+        responses: {
+            /** @description Güncel yorum; durum değiştiyse comment.updated (change: hidden | unhidden) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCommentModerationResponse"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Kimlik doğrulanamadı */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Bağlantı yorum izinlerini içermiyor (CHANNEL_PERMISSION_DENIED, details.missingScopes) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Oturum Facebook/Instagram bağlantısı taşımıyor ya da yorum yok */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Bağlantı geçersiz (CHANNEL_TOKEN_INVALID) ya da işlem bu yoruma uygulanamaz (INVALID_REQUEST, details.reason: comment_removed | own_comment) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description İstek sınırı; Retry-After başlığı */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Meta beklenmeyen bir hata döndürdü */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Yorum kayıtları bu sunucuda etkin değil (CHANNEL_NOT_CONFIGURED) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+        };
+    };
+    commentDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                instance: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Güncel yorum; silindiyse comment.removed (reason: deleted_by_owner) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCommentModerationResponse"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Kimlik doğrulanamadı */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Bağlantı yorum izinlerini içermiyor (CHANNEL_PERMISSION_DENIED, details.missingScopes) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Oturum Facebook/Instagram bağlantısı taşımıyor ya da yorum yok */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Bağlantı geçersiz (CHANNEL_TOKEN_INVALID) ya da işlem bu yoruma uygulanamaz (INVALID_REQUEST, details.reason: comment_removed | own_comment) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description İstek sınırı; Retry-After başlığı */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Meta beklenmeyen bir hata döndürdü */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Yorum kayıtları bu sunucuda etkin değil (CHANNEL_NOT_CONFIGURED) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+        };
+    };
+    commentPrivateReply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                instance: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MetaCommentPrivateReplyRequest"];
+            };
+        };
+        responses: {
+            /** @description Özel yanıt gönderildi */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetaCommentPrivateReplyResponse"];
+                };
+            };
+            /** @description Doğrulama hatası */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Kimlik doğrulanamadı */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Bağlantı yorum ya da mesajlaşma iznini içermiyor (CHANNEL_PERMISSION_DENIED, details.missingScopes) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Oturum Facebook/Instagram bağlantısı taşımıyor ya da yorum yok */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Bağlantı geçersiz ya da özel yanıt verilemez (INVALID_REQUEST, details.reason: private_reply_already_sent | private_reply_not_allowed | comment_removed | own_comment) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelError"];
+                };
+            };
+            /** @description Yorumdan bu yana 7 günden fazla geçti (WINDOW_CLOSED, details.window: private_reply) */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

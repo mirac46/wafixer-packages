@@ -51,6 +51,14 @@ export type MetaCommentImportResponse = Schemas['MetaCommentImportResponse']
 export type MetaCommentStatus = Schemas['MetaCommentStatus']
 export type MetaCommentEventData = Schemas['MetaCommentEventData']
 export type MetaCommentReplyEventData = Schemas['MetaCommentReplyEventData']
+/** `comment.removed` nedeni: `deleted_by_owner` (wafixer API'siyle silindi) ya da `removed_on_meta`. */
+export type MetaCommentRemovalReason = NonNullable<MetaCommentEventData['reason']>
+export type MetaCommentHideRequest = Schemas['MetaCommentHideRequest']
+export type MetaCommentModerationResponse = Schemas['MetaCommentModerationResponse']
+export type MetaCommentPrivateReplyRequest = Schemas['MetaCommentPrivateReplyRequest']
+export type MetaCommentPrivateMessage = Schemas['MetaCommentPrivateMessage']
+export type MetaCommentPrivateReplyResponse = Schemas['MetaCommentPrivateReplyResponse']
+export type MetaCommentPrivateReplyEventData = Schemas['MetaCommentPrivateReplyEventData']
 
 // ────────────────── Facebook Lead Ads ──────────────────
 

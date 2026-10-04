@@ -40,6 +40,7 @@ export const WEBHOOK_EVENTS = [
   'COMMENT_UPDATED',
   'COMMENT_REMOVED',
   'COMMENT_REPLY_SENT',
+  'COMMENT_PRIVATE_REPLY_SENT',
   'LEAD_RECEIVED',
   'LEAD_UPDATED',
 ] as const
@@ -51,6 +52,7 @@ export const COMMENT_EVENTS = [
   'COMMENT_UPDATED',
   'COMMENT_REMOVED',
   'COMMENT_REPLY_SENT',
+  'COMMENT_PRIVATE_REPLY_SENT',
 ] as const satisfies readonly WebhookEventConstant[]
 
 export const LEAD_EVENTS = ['LEAD_RECEIVED', 'LEAD_UPDATED'] as const satisfies readonly WebhookEventConstant[]
@@ -88,6 +90,7 @@ const KNOWN_EVENT_NAMES: ReadonlySet<string> = new Set<WebhookEventName>([
   'comment.updated',
   'comment.removed',
   'comment.reply.sent',
+  'comment.private_reply.sent',
   'lead.received',
   'lead.updated',
 ])

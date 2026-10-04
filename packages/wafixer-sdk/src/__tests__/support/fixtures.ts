@@ -60,6 +60,7 @@ export const metaComment: MetaComment = {
   sentByApi: false,
   read: false,
   readAt: null,
+  privateReplyAt: null,
   createdAt: '2026-10-04T09:30:00.000Z',
   editedAt: null,
   removedAt: null,

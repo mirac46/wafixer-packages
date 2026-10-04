@@ -81,11 +81,14 @@ export class WafixerUnsupportedChannelError extends WafixerValidationError {
 /**
  * 422 `WINDOW_CLOSED`: Messenger/Instagram 24 saatlik penceresi kapalı. `humanAgentAvailable`
  * true ise insan temsilci `humanAgent: true` ile `humanAgentExpires` anına kadar yanıt verebilir.
+ * Yoruma özel yanıtta `window: 'private_reply'`: yorumdan bu yana 7 gün geçti.
  */
 export class WafixerWindowClosedError extends WafixerValidationError {
   public readonly humanAgentAvailable: boolean
   public readonly windowExpires: string | null
   public readonly humanAgentExpires: string | null
+  /** Hangi pencere: `private_reply` (yoruma özel yanıt); mesaj penceresinde `null`. */
+  public readonly window: string | null
 
   constructor(message: string, response?: unknown, options: WafixerErrorOptions = {}) {
     super(message, response, { ...options, status: options.status ?? 422, code: 'WINDOW_CLOSED' })
@@ -93,14 +96,22 @@ export class WafixerWindowClosedError extends WafixerValidationError {
     this.humanAgentAvailable = this.details?.humanAgentAvailable === true
     this.windowExpires = stringOrNull(this.details?.windowExpires)
     this.humanAgentExpires = stringOrNull(this.details?.humanAgentExpires)
+    this.window = stringOrNull(this.details?.window)
   }
 }
 
 /** 409: çakışma (bağlı Sayfa, süren içe aktarma, başka uygulamanın yönettiği konuşma…). */
 export class WafixerConflictError extends WafixerError {
+  /**
+   * `details.reason`; yorum moderasyonunda `private_reply_already_sent`, `private_reply_not_allowed`,
+   * `comment_removed`, `own_comment`.
+   */
+  public readonly reason: string | null
+
   constructor(message: string, options: WafixerErrorOptions = {}) {
     super(message, { ...options, status: options.status ?? 409, code: options.code ?? 'CONFLICT' })
     this.name = 'WafixerConflictError'
+    this.reason = stringOrNull(this.details?.reason)
   }
 }
 

@@ -227,6 +227,59 @@ describe('legacy error bodies', () => {
   })
 })
 
+describe('comment moderation errors', () => {
+  it('private reply after 7 days → WafixerWindowClosedError with window', async () => {
+    server.on('POST', '/comment/privateReply/TestSayfa/1_2', {
+      status: 422,
+      body: {
+        error: 'Özel yanıt yalnız yorumdan sonraki 7 gün içinde gönderilebilir.',
+        code: 'WINDOW_CLOSED',
+        details: { window: 'private_reply', expiredAt: '2026-09-30T10:00:00.000Z' },
+      },
+    })
+    const error = await failure(wa.comment.privateReply('TestSayfa', '1_2', { text: 'x' }))
+    if (!(error instanceof WafixerWindowClosedError)) throw error
+    expect(error.window).toBe('private_reply')
+    expect(error.humanAgentAvailable).toBe(false)
+    expect(error.details).toMatchObject({ expiredAt: '2026-09-30T10:00:00.000Z' })
+  })
+
+  it('second private reply → WafixerConflictError with reason', async () => {
+    server.on('POST', '/comment/privateReply/TestSayfa/1_2', {
+      status: 409,
+      body: {
+        error: 'Bu yoruma daha önce özel yanıt gönderildi.',
+        code: 'INVALID_REQUEST',
+        details: { reason: 'private_reply_already_sent', privateReplyAt: '2026-10-04T10:00:00.000Z' },
+      },
+    })
+    const error = await failure(wa.comment.privateReply('TestSayfa', '1_2', { text: 'x' }))
+    if (!(error instanceof WafixerConflictError)) throw error
+    expect(error.code).toBe('INVALID_REQUEST')
+    expect(error.reason).toBe('private_reply_already_sent')
+  })
+
+  it('hiding the own comment → WafixerConflictError reason own_comment', async () => {
+    server.on('POST', '/comment/hide/TestSayfa/1_2', {
+      status: 409,
+      body: { error: 'Sayfanın kendi yorumunda bu işlem yapılamaz.', code: 'INVALID_REQUEST', details: { reason: 'own_comment' } },
+    })
+    const error = await failure(wa.comment.hide('TestSayfa', '1_2', { hidden: true }))
+    if (!(error instanceof WafixerConflictError)) throw error
+    expect(error.reason).toBe('own_comment')
+  })
+
+  it('missing messaging scope for private reply → WafixerPermissionError', async () => {
+    server.on('POST', '/comment/privateReply/TestSayfa/1_2', {
+      status: 403,
+      body: { error: 'İzin eksik.', code: 'CHANNEL_PERMISSION_DENIED', details: { missingScopes: ['pages_messaging'] } },
+    })
+    const error = await failure(wa.comment.privateReply('TestSayfa', '1_2', { text: 'x' }))
+    if (!(error instanceof WafixerPermissionError)) throw error
+    expect(error.missingScopes).toEqual(['pages_messaging'])
+  })
+})
+
 describe('parseRetryAfter', () => {
   it('reads seconds and HTTP dates', () => {
     const now = Date.parse('2026-10-04T10:00:00.000Z')

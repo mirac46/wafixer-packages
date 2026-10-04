@@ -9,6 +9,7 @@ import type {
   ConnectionUpdateReason,
   LeadWebhookEnvelope,
   MetaCommentEventData,
+  MetaCommentPrivateReplyEventData,
   MetaCommentReplyEventData,
   WafixerChannel,
 } from './contracts'
@@ -35,6 +36,7 @@ export type WebhookEventName =
   | 'comment.updated'
   | 'comment.removed'
   | 'comment.reply.sent'
+  | 'comment.private_reply.sent'
   | 'lead.received'
   | 'lead.updated'
 
@@ -156,17 +158,24 @@ export type CallEvent = WebhookEnvelope<'call', CallData[]>
 
 /** Kullanıcının yeni yorumu ya da yanıtı. Sayfanın/hesabın kendi yorumu bu olayla gelmez. */
 export type CommentReceivedEvent = WebhookEnvelope<'comment.received', MetaCommentEventData>
-/** Düzenlendi, gizlendi ya da gösterildi (`data.change`). */
+/** Düzenlendi, gizlendi ya da gösterildi (`data.change`); gizleme/gösterme API'den de gelir. */
 export type CommentUpdatedEvent = WebhookEnvelope<'comment.updated', MetaCommentEventData>
+/** Silindi; `data.reason`: `deleted_by_owner` (API ile silindi) ya da `removed_on_meta`. */
 export type CommentRemovedEvent = WebhookEnvelope<'comment.removed', MetaCommentEventData>
 /** Sayfanın/hesabın yanıtı; `data.comment.sentByApi` API'den mi Meta arayüzünden mi gönderildiğini söyler. */
 export type CommentReplySentEvent = WebhookEnvelope<'comment.reply.sent', MetaCommentReplyEventData>
+/**
+ * Yorum sahibine özel (DM) yanıt gönderildi. Aynı mesaj `send.message` olarak da gelir;
+ * tekilleştirme `data.message.id` ile yapılır.
+ */
+export type CommentPrivateReplySentEvent = WebhookEnvelope<'comment.private_reply.sent', MetaCommentPrivateReplyEventData>
 
 export type CommentWebhookEvent =
   | CommentReceivedEvent
   | CommentUpdatedEvent
   | CommentRemovedEvent
   | CommentReplySentEvent
+  | CommentPrivateReplySentEvent
 
 // ────────────────── LEADS (Facebook Lead Ads) ──────────────────
 

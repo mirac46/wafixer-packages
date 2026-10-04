@@ -1330,6 +1330,17 @@
               }
             ]
           },
+          "privateReplyAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir"
+          },
           "createdAt": {
             "type": "string"
           },
@@ -1368,6 +1379,7 @@
           "sentByApi",
           "read",
           "readAt",
+          "privateReplyAt",
           "createdAt",
           "editedAt",
           "removedAt"
@@ -1619,6 +1631,17 @@
                     }
                   ]
                 },
+                "privateReplyAt": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir"
+                },
                 "createdAt": {
                   "type": "string"
                 },
@@ -1657,6 +1680,7 @@
                 "sentByApi",
                 "read",
                 "readAt",
+                "privateReplyAt",
                 "createdAt",
                 "editedAt",
                 "removedAt"
@@ -1878,6 +1902,17 @@
                   }
                 ]
               },
+              "privateReplyAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir"
+              },
               "createdAt": {
                 "type": "string"
               },
@@ -1916,6 +1951,7 @@
               "sentByApi",
               "read",
               "readAt",
+              "privateReplyAt",
               "createdAt",
               "editedAt",
               "removedAt"
@@ -2121,6 +2157,17 @@
                       }
                     ]
                   },
+                  "privateReplyAt": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir"
+                  },
                   "createdAt": {
                     "type": "string"
                   },
@@ -2159,6 +2206,7 @@
                   "sentByApi",
                   "read",
                   "readAt",
+                  "privateReplyAt",
                   "createdAt",
                   "editedAt",
                   "removedAt"
@@ -2283,6 +2331,17 @@
                     }
                   ]
                 },
+                "privateReplyAt": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir"
+                },
                 "createdAt": {
                   "type": "string"
                 },
@@ -2321,6 +2380,7 @@
                 "sentByApi",
                 "read",
                 "readAt",
+                "privateReplyAt",
                 "createdAt",
                 "editedAt",
                 "removedAt"
@@ -2466,6 +2526,17 @@
                   }
                 ]
               },
+              "privateReplyAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir"
+              },
               "createdAt": {
                 "type": "string"
               },
@@ -2504,6 +2575,7 @@
               "sentByApi",
               "read",
               "readAt",
+              "privateReplyAt",
               "createdAt",
               "editedAt",
               "removedAt"
@@ -2895,6 +2967,17 @@
                   }
                 ]
               },
+              "privateReplyAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir"
+              },
               "createdAt": {
                 "type": "string"
               },
@@ -2933,6 +3016,7 @@
               "sentByApi",
               "read",
               "readAt",
+              "privateReplyAt",
               "createdAt",
               "editedAt",
               "removedAt"
@@ -3026,11 +3110,20 @@
             ]
           },
           "change": {
+            "description": "Yalnız comment.updated",
             "type": "string",
             "enum": [
               "edited",
               "hidden",
               "unhidden"
+            ]
+          },
+          "reason": {
+            "description": "Yalnız comment.removed",
+            "type": "string",
+            "enum": [
+              "deleted_by_owner",
+              "removed_on_meta"
             ]
           }
         },
@@ -3154,6 +3247,17 @@
                   }
                 ]
               },
+              "privateReplyAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir"
+              },
               "createdAt": {
                 "type": "string"
               },
@@ -3192,6 +3296,7 @@
               "sentByApi",
               "read",
               "readAt",
+              "privateReplyAt",
               "createdAt",
               "editedAt",
               "removedAt"
@@ -3299,6 +3404,764 @@
           "comment",
           "inReplyTo",
           "post"
+        ],
+        "additionalProperties": false
+      },
+      "MetaCommentHideRequest": {
+        "type": "object",
+        "properties": {
+          "hidden": {
+            "type": "boolean",
+            "description": "true gizler, false yeniden gösterir"
+          }
+        },
+        "required": [
+          "hidden"
+        ],
+        "additionalProperties": false
+      },
+      "MetaCommentModerationResponse": {
+        "type": "object",
+        "properties": {
+          "comment": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Meta yorum kimliği"
+              },
+              "platform": {
+                "type": "string",
+                "enum": [
+                  "FACEBOOK",
+                  "INSTAGRAM"
+                ]
+              },
+              "accountId": {
+                "type": "string",
+                "description": "Facebook Sayfa kimliği ya da Instagram profesyonel hesap kimliği"
+              },
+              "postId": {
+                "type": "string",
+                "description": "Facebook gönderi kimliği ya da Instagram medya kimliği"
+              },
+              "parentId": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Yanıtın bağlı olduğu üst düzey yorum; gönderiye yazılan yorumda null"
+              },
+              "author": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "name": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "text": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "removed"
+                ]
+              },
+              "hidden": {
+                "type": "boolean"
+              },
+              "fromOwner": {
+                "type": "boolean",
+                "description": "Yazar bağlı Sayfa ya da Instagram hesabının kendisi; otomatik yanıt verilmez"
+              },
+              "sentByApi": {
+                "type": "boolean",
+                "description": "Yanıt wafixer API üzerinden gönderildi"
+              },
+              "read": {
+                "type": "boolean"
+              },
+              "readAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "privateReplyAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir"
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "editedAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "removedAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "platform",
+              "accountId",
+              "postId",
+              "parentId",
+              "author",
+              "text",
+              "status",
+              "hidden",
+              "fromOwner",
+              "sentByApi",
+              "read",
+              "readAt",
+              "privateReplyAt",
+              "createdAt",
+              "editedAt",
+              "removedAt"
+            ],
+            "additionalProperties": false
+          },
+          "changed": {
+            "type": "boolean",
+            "description": "false: yorum zaten istenen durumdaydı, olay yayınlanmadı"
+          }
+        },
+        "required": [
+          "comment",
+          "changed"
+        ],
+        "additionalProperties": false
+      },
+      "MetaCommentPrivateReplyRequest": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Facebook en çok 2000 karakter, Instagram en çok 1000 bayt"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false
+      },
+      "MetaCommentPrivateMessage": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Meta mesaj kimliği (mid); sohbetteki mesaj anahtarı"
+          },
+          "remoteJid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Sohbet kimliği ({psid}@messenger ya da {igsid}@instagram); Meta alıcı kimliği döndürmezse null"
+          },
+          "text": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Unix saniye"
+          }
+        },
+        "required": [
+          "id",
+          "remoteJid",
+          "text",
+          "timestamp"
+        ],
+        "additionalProperties": false
+      },
+      "MetaCommentPrivateReplyResponse": {
+        "type": "object",
+        "properties": {
+          "comment": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Meta yorum kimliği"
+              },
+              "platform": {
+                "type": "string",
+                "enum": [
+                  "FACEBOOK",
+                  "INSTAGRAM"
+                ]
+              },
+              "accountId": {
+                "type": "string",
+                "description": "Facebook Sayfa kimliği ya da Instagram profesyonel hesap kimliği"
+              },
+              "postId": {
+                "type": "string",
+                "description": "Facebook gönderi kimliği ya da Instagram medya kimliği"
+              },
+              "parentId": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Yanıtın bağlı olduğu üst düzey yorum; gönderiye yazılan yorumda null"
+              },
+              "author": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "name": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "text": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "removed"
+                ]
+              },
+              "hidden": {
+                "type": "boolean"
+              },
+              "fromOwner": {
+                "type": "boolean",
+                "description": "Yazar bağlı Sayfa ya da Instagram hesabının kendisi; otomatik yanıt verilmez"
+              },
+              "sentByApi": {
+                "type": "boolean",
+                "description": "Yanıt wafixer API üzerinden gönderildi"
+              },
+              "read": {
+                "type": "boolean"
+              },
+              "readAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "privateReplyAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir"
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "editedAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "removedAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "platform",
+              "accountId",
+              "postId",
+              "parentId",
+              "author",
+              "text",
+              "status",
+              "hidden",
+              "fromOwner",
+              "sentByApi",
+              "read",
+              "readAt",
+              "privateReplyAt",
+              "createdAt",
+              "editedAt",
+              "removedAt"
+            ],
+            "additionalProperties": false
+          },
+          "message": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Meta mesaj kimliği (mid); sohbetteki mesaj anahtarı"
+              },
+              "remoteJid": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Sohbet kimliği ({psid}@messenger ya da {igsid}@instagram); Meta alıcı kimliği döndürmezse null"
+              },
+              "text": {
+                "type": "string"
+              },
+              "timestamp": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "description": "Unix saniye"
+              }
+            },
+            "required": [
+              "id",
+              "remoteJid",
+              "text",
+              "timestamp"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "comment",
+          "message"
+        ],
+        "additionalProperties": false
+      },
+      "MetaCommentPrivateReplyEventData": {
+        "type": "object",
+        "properties": {
+          "comment": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Meta yorum kimliği"
+              },
+              "platform": {
+                "type": "string",
+                "enum": [
+                  "FACEBOOK",
+                  "INSTAGRAM"
+                ]
+              },
+              "accountId": {
+                "type": "string",
+                "description": "Facebook Sayfa kimliği ya da Instagram profesyonel hesap kimliği"
+              },
+              "postId": {
+                "type": "string",
+                "description": "Facebook gönderi kimliği ya da Instagram medya kimliği"
+              },
+              "parentId": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Yanıtın bağlı olduğu üst düzey yorum; gönderiye yazılan yorumda null"
+              },
+              "author": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "name": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "text": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "removed"
+                ]
+              },
+              "hidden": {
+                "type": "boolean"
+              },
+              "fromOwner": {
+                "type": "boolean",
+                "description": "Yazar bağlı Sayfa ya da Instagram hesabının kendisi; otomatik yanıt verilmez"
+              },
+              "sentByApi": {
+                "type": "boolean",
+                "description": "Yanıt wafixer API üzerinden gönderildi"
+              },
+              "read": {
+                "type": "boolean"
+              },
+              "readAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "privateReplyAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Yorum sahibine özel (DM) yanıt gönderildiği an; Meta yorum başına tek özel yanıta izin verir"
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "editedAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "removedAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "platform",
+              "accountId",
+              "postId",
+              "parentId",
+              "author",
+              "text",
+              "status",
+              "hidden",
+              "fromOwner",
+              "sentByApi",
+              "read",
+              "readAt",
+              "privateReplyAt",
+              "createdAt",
+              "editedAt",
+              "removedAt"
+            ],
+            "additionalProperties": false
+          },
+          "post": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "platform": {
+                    "type": "string",
+                    "enum": [
+                      "FACEBOOK",
+                      "INSTAGRAM"
+                    ]
+                  },
+                  "accountId": {
+                    "type": "string"
+                  },
+                  "permalink": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "messagePreview": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "mediaType": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "postedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "lastCommentAt": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "platform",
+                  "accountId",
+                  "permalink",
+                  "messagePreview",
+                  "mediaType",
+                  "postedAt",
+                  "lastCommentAt"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Meta mesaj kimliği (mid); sohbetteki mesaj anahtarı"
+              },
+              "remoteJid": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Sohbet kimliği ({psid}@messenger ya da {igsid}@instagram); Meta alıcı kimliği döndürmezse null"
+              },
+              "text": {
+                "type": "string"
+              },
+              "timestamp": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "description": "Unix saniye"
+              }
+            },
+            "required": [
+              "id",
+              "remoteJid",
+              "text",
+              "timestamp"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "comment",
+          "post",
+          "message"
         ],
         "additionalProperties": false
       },
@@ -7240,6 +8103,417 @@
         }
       }
     },
+    "/comment/hide/{instance}/{commentId}": {
+      "post": {
+        "operationId": "commentHide",
+        "tags": [
+          "Yorumlar"
+        ],
+        "summary": "Yorumu gizler ya da yeniden gösterir (Facebook is_hidden, Instagram hide); Sayfanın/hesabın kendi yorumu gizlenemez",
+        "security": [
+          {
+            "apikey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "instance",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            }
+          },
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+(?:_[0-9]+)?$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MetaCommentHideRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Güncel yorum; durum değiştiyse comment.updated (change: hidden | unhidden)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCommentModerationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Doğrulama hatası",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Kimlik doğrulanamadı",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bağlantı yorum izinlerini içermiyor (CHANNEL_PERMISSION_DENIED, details.missingScopes)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Oturum Facebook/Instagram bağlantısı taşımıyor ya da yorum yok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Bağlantı geçersiz (CHANNEL_TOKEN_INVALID) ya da işlem bu yoruma uygulanamaz (INVALID_REQUEST, details.reason: comment_removed | own_comment)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "İstek sınırı; Retry-After başlığı",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Meta beklenmeyen bir hata döndürdü",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Yorum kayıtları bu sunucuda etkin değil (CHANNEL_NOT_CONFIGURED)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/comment/delete/{instance}/{commentId}": {
+      "delete": {
+        "operationId": "commentDelete",
+        "tags": [
+          "Yorumlar"
+        ],
+        "summary": "Yorumu Meta üzerinde siler; kayıt removed durumuna geçer (satır silinmez), üst düzey yorumun yanıtları da",
+        "security": [
+          {
+            "apikey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "instance",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            }
+          },
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+(?:_[0-9]+)?$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Güncel yorum; silindiyse comment.removed (reason: deleted_by_owner)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCommentModerationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Doğrulama hatası",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Kimlik doğrulanamadı",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bağlantı yorum izinlerini içermiyor (CHANNEL_PERMISSION_DENIED, details.missingScopes)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Oturum Facebook/Instagram bağlantısı taşımıyor ya da yorum yok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Bağlantı geçersiz (CHANNEL_TOKEN_INVALID) ya da işlem bu yoruma uygulanamaz (INVALID_REQUEST, details.reason: comment_removed | own_comment)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "İstek sınırı; Retry-After başlığı",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Meta beklenmeyen bir hata döndürdü",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Yorum kayıtları bu sunucuda etkin değil (CHANNEL_NOT_CONFIGURED)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/comment/privateReply/{instance}/{commentId}": {
+      "post": {
+        "operationId": "commentPrivateReply",
+        "tags": [
+          "Yorumlar"
+        ],
+        "summary": "Yorum sahibine özel (DM) yanıt: yorumdan sonraki 7 gün içinde, yorum başına bir kez; mesaj sohbete fromMe olarak yazılır",
+        "security": [
+          {
+            "apikey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "instance",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            }
+          },
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+(?:_[0-9]+)?$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MetaCommentPrivateReplyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Özel yanıt gönderildi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaCommentPrivateReplyResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Doğrulama hatası",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Kimlik doğrulanamadı",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bağlantı yorum ya da mesajlaşma iznini içermiyor (CHANNEL_PERMISSION_DENIED, details.missingScopes)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Oturum Facebook/Instagram bağlantısı taşımıyor ya da yorum yok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Bağlantı geçersiz ya da özel yanıt verilemez (INVALID_REQUEST, details.reason: private_reply_already_sent | private_reply_not_allowed | comment_removed | own_comment)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Yorumdan bu yana 7 günden fazla geçti (WINDOW_CLOSED, details.window: private_reply)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "İstek sınırı; Retry-After başlığı",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Meta beklenmeyen bir hata döndürdü",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Yorum kayıtları bu sunucuda etkin değil (CHANNEL_NOT_CONFIGURED)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/leads/config/{instance}": {
       "get": {
         "operationId": "leadsConfig",
@@ -8818,7 +10092,7 @@
     },
     "comment.removed": {
       "post": {
-        "summary": "Yorum silindi; data: MetaCommentEventData",
+        "summary": "Yorum silindi (data.reason: deleted_by_owner | removed_on_meta); data: MetaCommentEventData",
         "requestBody": {
           "content": {
             "application/json": {
@@ -8838,6 +10112,25 @@
     "comment.reply.sent": {
       "post": {
         "summary": "Sayfanın/hesabın yanıtı (sentByApi: API ya da Meta arayüzü); data: MetaCommentReplyEventData",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEnvelope"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "comment.private_reply.sent": {
+      "post": {
+        "summary": "Yorum sahibine özel (DM) yanıt gönderildi; data: MetaCommentPrivateReplyEventData",
         "requestBody": {
           "content": {
             "application/json": {

@@ -60,6 +60,29 @@ describe('parseWebhookEvent', () => {
     expect(reply.data.comment.sentByApi).toBe(true)
   })
 
+  it('parses comment.private_reply.sent and comment.removed reason', () => {
+    const privateReply = parseWebhookEvent({
+      ...envelope,
+      event: 'comment.private_reply.sent',
+      channel: 'MESSENGER',
+      data: {
+        comment: { ...metaComment, privateReplyAt: '2026-10-04T10:00:00.000Z' },
+        post: metaPost,
+        message: { id: 'm_PRIVATE_1', remoteJid: 'PSID_TEST_1@messenger', text: 'Merhaba', timestamp: 1790000500 },
+      },
+    })
+    if (privateReply?.event !== 'comment.private_reply.sent') throw new Error('comment.private_reply.sent bekleniyordu')
+    expect(privateReply.data.message.id).toBe('m_PRIVATE_1')
+
+    const removed = parseWebhookEvent({
+      ...envelope,
+      event: 'comment.removed',
+      data: { comment: { ...metaComment, status: 'removed' }, post: null, reason: 'deleted_by_owner' },
+    })
+    if (removed?.event !== 'comment.removed') throw new Error('comment.removed bekleniyordu')
+    expect(removed.data.reason).toBe('deleted_by_owner')
+  })
+
   it('parses lead.received and lead.updated (no apikey in the envelope)', () => {
     const received = parseWebhookEvent({
       event: 'lead.received',
@@ -125,12 +148,19 @@ describe('parseWebhookEvent', () => {
 describe('webhook event constants', () => {
   it('include comment and lead events accepted by webhook/set', () => {
     for (const name of [...COMMENT_EVENTS, ...LEAD_EVENTS]) expect(WEBHOOK_EVENTS).toContain(name)
-    expect(COMMENT_EVENTS).toEqual(['COMMENT_RECEIVED', 'COMMENT_UPDATED', 'COMMENT_REMOVED', 'COMMENT_REPLY_SENT'])
+    expect(COMMENT_EVENTS).toEqual([
+      'COMMENT_RECEIVED',
+      'COMMENT_UPDATED',
+      'COMMENT_REMOVED',
+      'COMMENT_REPLY_SENT',
+      'COMMENT_PRIVATE_REPLY_SENT',
+    ])
     expect(LEAD_EVENTS).toEqual(['LEAD_RECEIVED', 'LEAD_UPDATED'])
   })
 
   it('maps event names to webhook/set constants', () => {
     expect(webhookEventConstant('comment.reply.sent')).toBe('COMMENT_REPLY_SENT')
+    expect(webhookEventConstant('comment.private_reply.sent')).toBe('COMMENT_PRIVATE_REPLY_SENT')
     expect(webhookEventConstant('lead.received')).toBe('LEAD_RECEIVED')
     expect(webhookEventConstant('group-participants.update')).toBe('GROUP_PARTICIPANTS_UPDATE')
     expect(webhookEventConstant('groups.update')).toBe('GROUP_UPDATE')

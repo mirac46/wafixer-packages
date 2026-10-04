@@ -101,3 +101,47 @@ describe('comment resource', () => {
     expect(server.last().path).toBe(path)
   })
 })
+
+describe('comment moderation', () => {
+  it('hide hides or shows a comment', async () => {
+    server.on('POST', '/comment/hide/TestSayfa/222_333', ({ body }) => ({
+      body: { comment: { ...metaComment, hidden: (body as { hidden: boolean }).hidden }, changed: true },
+    }))
+    const hidden = await wa.comment.hide('TestSayfa', '222_333', { hidden: true })
+    expect(hidden).toMatchObject({ changed: true, comment: { hidden: true } })
+    expect(server.last()).toMatchObject({ method: 'POST', body: { hidden: true } })
+
+    const shown = await wa.comment.hide('TestSayfa', '222_333', { hidden: false })
+    expect(shown.comment.hidden).toBe(false)
+    expect(server.last().body).toEqual({ hidden: false })
+  })
+
+  it('delete removes the comment on Meta', async () => {
+    const removed = { ...metaComment, status: 'removed' as const, removedAt: '2026-10-04T10:00:00.000Z' }
+    server.on('DELETE', '/comment/delete/TestSayfa/222_333', { body: { comment: removed, changed: true } })
+    const result = await wa.comment.delete('TestSayfa', '222_333')
+    expect(result.comment.status).toBe('removed')
+    expect(server.last()).toMatchObject({ method: 'DELETE', path: '/comment/delete/TestSayfa/222_333' })
+  })
+
+  it('privateReply sends a DM to the comment author', async () => {
+    const message = { id: 'm_PRIVATE_1', remoteJid: 'PSID_TEST_1@messenger', text: 'Detayları buradan iletiyoruz', timestamp: 1790000500 }
+    server.on('POST', '/comment/privateReply/TestSayfa/222_333', {
+      status: 201,
+      body: { comment: { ...metaComment, privateReplyAt: '2026-10-04T10:00:00.000Z' }, message },
+    })
+    const result = await wa.comment.privateReply('TestSayfa', '222_333', { text: 'Detayları buradan iletiyoruz' })
+    expect(result.message).toEqual(message)
+    expect(result.comment.privateReplyAt).toBe('2026-10-04T10:00:00.000Z')
+    expect(server.last().body).toEqual({ text: 'Detayları buradan iletiyoruz' })
+  })
+
+  it('privateReplyToEvent answers the author of a comment event', async () => {
+    server.on('POST', '/comment/privateReply/TestSayfa/222_333', {
+      status: 201,
+      body: { comment: metaComment, message: { id: 'm_2', remoteJid: null, text: 'Merhaba', timestamp: 1790000600 } },
+    })
+    await wa.comment.privateReplyToEvent({ instance: 'TestSayfa', data: { comment: metaComment } }, { text: 'Merhaba' })
+    expect(server.last().path).toBe('/comment/privateReply/TestSayfa/222_333')
+  })
+})
