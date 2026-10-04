@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "..",
+    "baseUrl": ".",
+    "paths": { "wafixer-sdk": ["../wafixer-sdk/src/index.ts"] }
+  },
+  "include": ["nodes/**/*", "credentials/**/*", "index.ts", "test/**/*", "vitest.config.ts"],
+  "exclude": ["dist", "node_modules"]
+}
