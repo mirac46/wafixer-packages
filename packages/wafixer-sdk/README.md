@@ -150,7 +150,18 @@ await wa.comment.import('Klinik Sayfa', { postId: posts[0].id, limit: 500 })
 // comment.received olayına yanıt
 const event = parseWebhookEvent(req.body)
 if (event?.event === 'comment.received') await wa.comment.replyToEvent(event, { text: 'Teşekkürler!' })
+
+// Moderasyon
+await wa.comment.hide('Klinik Sayfa', comments[0].id, { hidden: true }) // false: yeniden göster
+await wa.comment.delete('Klinik Sayfa', comments[0].id) // comment.removed, reason: deleted_by_owner
+
+// Yorum sahibine özel (DM) yanıt: yorumdan sonraki 7 gün içinde, yorum başına bir kez
+const { message } = await wa.comment.privateReply('Klinik Sayfa', comments[0].id, { text: 'Detayları buradan iletiyoruz.' })
 ```
+
+Özel yanıt sohbete giden mesaj olarak yazılır ve iki olay üretir: `comment.private_reply.sent` ve `send.message`;
+ikisini `message.id` ile tekilleştirin. 7 gün geçtiyse `WafixerWindowClosedError` (`window: 'private_reply'`), yorum
+zaten yanıtlandıysa `WafixerConflictError` (`reason: 'private_reply_already_sent'`) fırlar.
 
 ## Facebook Lead Ads
 
@@ -232,6 +243,10 @@ Messenger/Instagram'da desteklenmeyen işlem (`sendList`, `sendLocation`, `sendP
 | `replyToEvent(event, { text })` | `comment.received` olayına yanıt |
 | `markRead(instance, input)` | `POST /comment/markRead/{instance}` — `commentIds`, `postId` ya da `all: true` |
 | `import(instance, { postId, limit? })` | `POST /comment/import/{instance}` |
+| `hide(instance, commentId, { hidden })` | `POST /comment/hide/{instance}/{commentId}` — `{ comment, changed }` |
+| `delete(instance, commentId)` | `DELETE /comment/delete/{instance}/{commentId}` — `{ comment, changed }` |
+| `privateReply(instance, commentId, { text })` | `POST /comment/privateReply/{instance}/{commentId}` — `{ comment, message }` |
+| `privateReplyToEvent(event, { text })` | `comment.received` olayının sahibine özel yanıt |
 
 ### Leads
 
@@ -282,8 +297,9 @@ if (event) handle(event)
 if (isWebhookEvent(req.body, 'lead.updated')) console.log(req.body.data.changes)
 ```
 
-Yeni olaylar: `comment.received`, `comment.updated` (`data.change`), `comment.removed`, `comment.reply.sent`
-(`data.comment.sentByApi`), `lead.received`, `lead.updated` (`data.changes`). Webhook ayarında adları
+Yeni olaylar: `comment.received`, `comment.updated` (`data.change`: `edited`, `hidden`, `unhidden`), `comment.removed`
+(`data.reason`: `deleted_by_owner`, `removed_on_meta`), `comment.reply.sent` (`data.comment.sentByApi`),
+`comment.private_reply.sent` (`data.message`), `lead.received`, `lead.updated` (`data.changes`). Webhook ayarında adları
 `COMMENT_EVENTS` ve `LEAD_EVENTS` sabitlerindedir. Teslim en az bir kezdir; yorumları `comment.id`, lead'leri
 `id` ile tekilleştirin.
 
@@ -299,8 +315,8 @@ Sunucunun `{ error, code, details }` gövdesi tipli hataya çevrilir; `code` sun
 | `WafixerNotFoundError` | 404 (`NOT_FOUND`, `CHANNEL_NOT_CONNECTED`) |
 | `WafixerValidationError` | 400 / 413 / 422 |
 | `WafixerUnsupportedChannelError` | 400 `UNSUPPORTED_ON_CHANNEL`; `operation` |
-| `WafixerWindowClosedError` | 422 `WINDOW_CLOSED`; `humanAgentAvailable`, `windowExpires`, `humanAgentExpires` |
-| `WafixerConflictError` | 409 (`IMPORT_IN_PROGRESS`, `CHANNEL_ALREADY_CONNECTED`…) |
+| `WafixerWindowClosedError` | 422 `WINDOW_CLOSED`; `humanAgentAvailable`, `windowExpires`, `humanAgentExpires`; yoruma özel yanıtta `window: 'private_reply'` |
+| `WafixerConflictError` | 409 (`IMPORT_IN_PROGRESS`, `CHANNEL_ALREADY_CONNECTED`…); `reason` (`details.reason`: `private_reply_already_sent`, `own_comment`…) |
 | `WafixerChannelAuthError` | 409 `CHANNEL_TOKEN_INVALID`; oturum yeniden bağlanmalı |
 | `WafixerRateLimitError` | 429 `RATE_LIMITED`; `retryAfter` (saniye) |
 | `WafixerUnavailableError` | 503 (`CHANNEL_NOT_CONFIGURED`, `LEADS_UNAVAILABLE`, `APP_NOT_LIVE`) |

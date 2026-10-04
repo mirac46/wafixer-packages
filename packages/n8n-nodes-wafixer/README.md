@@ -73,6 +73,9 @@ Facebook yorumları Sayfanın Messenger oturumunda, Instagram yorumları Instagr
 | **Reply** | Yoruma herkese açık yanıt (Sayfa/hesap adına) |
 | **Mark as Read** | Belirli yorumlar, bir gönderinin yorumları ya da hepsi |
 | **Import** | Bir gönderinin yorum geçmişini içe aktarır (içe aktarılanlar için trigger olayı gelmez) |
+| **Hide or Show** | Yorumu gizler ya da yeniden gösterir (**Hidden**) |
+| **Delete** | Yorumu Facebook/Instagram'da siler |
+| **Private Reply** | Yorum sahibine özel mesaj (DM); yorumdan sonraki 7 gün içinde, yorum başına bir kez |
 
 ### Lead — Facebook Lead Ads
 
@@ -99,7 +102,9 @@ Bir WAFixer instance'ında belirli olaylar gerçekleştiğinde akışı **otomat
 - Message Status (`messages.update`) — okundu / teslim edildi
 - Connection State (`connection.update`) — bağlandı / koptu; Messenger/Instagram'da `data.reason`:
   `token_invalid`, `subscription_lost`, `revoked`
-- Comment Received / Updated / Removed / Reply Sent (`comment.*`) — Facebook ve Instagram yorumları
+- Comment Received / Updated / Removed / Reply Sent / Private Reply Sent (`comment.*`) — Facebook ve Instagram
+  yorumları; Removed `data.reason` (`deleted_by_owner`, `removed_on_meta`) taşır. Private Reply Sent ile aynı mesaj
+  Outgoing Message olarak da gelir; `data.message.id` ile tekilleştir.
 - Lead Received / Updated (`lead.*`) — Facebook Lead Ads
 - Yeni kişi, yeni grup, üye ekle/çıkar, çağrı, vb.
 

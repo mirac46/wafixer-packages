@@ -5,7 +5,7 @@ commit mesajlarından üretilir.
 
 ## 0.2.0
 
-Sunucu: wafixer.com 2.3.11, kanal sözleşmesi `channels-v1` 1.1.0.
+Sunucu: wafixer.com 2.3.12, kanal sözleşmesi `channels-v1` 1.1.0 (yorumlar 1.1.0).
 
 ### Yeni
 
@@ -16,20 +16,21 @@ Sunucu: wafixer.com 2.3.11, kanal sözleşmesi `channels-v1` 1.1.0.
   pencere, medya türleri).
 - `SendTextInput.quickReplies` (en çok 13) ve `humanAgent`; `replyTo` ikisini de geçirir.
 - **Yorumlar:** `comment.status`, `find` (süzgeçler gövdede, imleçli), `detail`, `reply`, `replyToEvent`,
-  `markRead`, `import`.
+  `markRead`, `import`; moderasyon: `hide` (gizle/göster), `delete`, `privateReply` ve `privateReplyToEvent`
+  (yorum sahibine özel yanıt, 7 gün içinde, yorum başına bir kez).
 - **Facebook Lead Ads:** `leads.config`, `discover`, `connect`, `pages` / `pages.disconnect`, `forms` /
   `forms.sync` / `forms.import`, `items` / `items.get` / `items.update` / `items.delete` / `items.retry`.
   `items` süzgeçlerinde `status` dizi olabilir, `unread` boolean.
 - **Webhook:** `webhook.set` / `webhook.find`; `WEBHOOK_EVENTS` (sunucunun kabul ettiği adlar), `COMMENT_EVENTS`,
   `LEAD_EVENTS`, `webhookEventConstant`, `isWebhookEventConstant`.
-- **Olaylar:** `comment.received`, `comment.updated`, `comment.removed`, `comment.reply.sent`, `lead.received`,
-  `lead.updated` tipleri; `connection.update` için `reason` (`token_invalid`, `subscription_lost`, `revoked`);
-  zarfta `channel`; `MessageData.origin`, `appId`, `buttonsResponseMessage`.
+- **Olaylar:** `comment.received`, `comment.updated`, `comment.removed` (`reason`), `comment.reply.sent`,
+  `comment.private_reply.sent`, `lead.received`, `lead.updated` tipleri; `COMMENT_PRIVATE_REPLY_SENT` sabiti;
+  `connection.update` için `reason` (`token_invalid`, `subscription_lost`, `revoked`); zarfta `channel`; `MessageData.origin`, `appId`, `buttonsResponseMessage`.
 - `parseWebhookEvent` (nesne, JSON metni ya da Buffer), `isWafixerWebhookEvent`, `isWebhookEvent`,
   `getChannelUserId`; `getMessageText` hızlı yanıt ve postback metnini de okur.
 - **Tipli hatalar:** `{ error, code, details }` gövdesi `WafixerWindowClosedError` (`humanAgentAvailable`,
-  `windowExpires`, `humanAgentExpires`), `WafixerUnsupportedChannelError` (`operation`),
-  `WafixerPermissionError` (`missingScopes`), `WafixerConflictError`, `WafixerChannelAuthError`,
+  `windowExpires`, `humanAgentExpires`, `window`), `WafixerUnsupportedChannelError` (`operation`),
+  `WafixerPermissionError` (`missingScopes`), `WafixerConflictError` (`reason`), `WafixerChannelAuthError`,
   `WafixerRateLimitError` (`retryAfter`), `WafixerUnavailableError` sınıflarına eşlenir; `toWafixerError`
   dışa açık.
 - Sözleşme tipleri `openapi/channels-v1.openapi.json`'dan üretilir (`npm run generate:types`); testler üretilen

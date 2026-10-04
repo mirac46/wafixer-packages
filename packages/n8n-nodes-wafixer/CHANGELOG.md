@@ -4,22 +4,23 @@ Etiketler `n8n-nodes-wafixer@x.y.z`; GitHub Releases notları commit mesajların
 
 ## 0.2.0
 
-Gereken: `wafixer-sdk` `^0.2.0`, wafixer.com 2.3.11.
+Gereken: `wafixer-sdk` `^0.2.0`, wafixer.com 2.3.12.
 
 ### Yeni
 
 - **WAFixer** düğümüne **Resource** seçimi: Message (varsayılan; mevcut akışlar değişmeden çalışır), Comment, Lead.
 - **Comment:** Get Many (imleçli, Return All / Limit, filtreler; her yorum gönderi özetiyle), Reply, Mark as Read
-  (yorum kimlikleri, gönderi ya da hepsi), Import.
+  (yorum kimlikleri, gönderi ya da hepsi), Import, Hide or Show, Delete, Private Reply (yorum sahibine DM).
 - **Lead:** Get Many (Status çoklu seçim, Fetch Status, Form/Page ID, Unread Only, Since/Until, Updated Since),
   Get, Update (Status, Note, Read), Get Forms (isteğe bağlı Meta'dan eşitleme).
 - **Send Text** ve **Reply to Message** için Messenger / Instagram seçenekleri: Quick Replies, Human Agent.
-- **WAFixer Trigger:** Comment Received / Updated / Removed / Reply Sent, Lead Received / Updated olayları;
-  **Channels** seçeneği (WhatsApp, Messenger, Instagram).
+- **WAFixer Trigger:** Comment Received / Updated / Removed / Reply Sent / Private Reply Sent, Lead Received /
+  Updated olayları; **Channels** seçeneği (WhatsApp, Messenger, Instagram).
 - Oturum listesinde Messenger/Instagram oturumları kanal adıyla, bağlantısı düşmüş olanlar `Reconnect Required`
   olarak görünür.
 - API hataları `NodeApiError` olarak gelir; pencere kapalı, kanalda olmayan işlem, eksik Meta izni, geçersiz
-  bağlantı ve hız sınırı için açıklama yazılır. Continue On Fail çıktısında `code`, `status`, `details` var.
+  bağlantı, hız sınırı, 7 günü geçmiş ya da ikinci kez gönderilen özel yanıt için açıklama yazılır. Continue On
+  Fail çıktısında `code`, `status`, `details` var.
 
 ### Düzeltmeler
 
