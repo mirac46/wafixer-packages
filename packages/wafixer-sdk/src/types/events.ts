@@ -5,6 +5,13 @@
  */
 
 import type { MessageKey } from './common'
+import type {
+  ConnectionUpdateReason,
+  LeadWebhookEnvelope,
+  MetaCommentEventData,
+  MetaCommentReplyEventData,
+  WafixerChannel,
+} from './contracts'
 
 export type WebhookEventName =
   | 'messages.upsert'
@@ -24,11 +31,19 @@ export type WebhookEventName =
   | 'call'
   | 'typebot.start'
   | 'typebot.change-status'
+  | 'comment.received'
+  | 'comment.updated'
+  | 'comment.removed'
+  | 'comment.reply.sent'
+  | 'lead.received'
+  | 'lead.updated'
 
 export interface WebhookEnvelope<TEvent extends WebhookEventName, TData> {
   event: TEvent
   instance: string
   data: TData
+  /** Oturumun kanalı (`QR`, `META`, `WAFIXER`, `MESSENGER`, `INSTAGRAM`); eski sunucularda yok. */
+  channel?: WafixerChannel | null
   destination: string
   date_time: string
   sender: string
@@ -39,8 +54,10 @@ export interface WebhookEnvelope<TEvent extends WebhookEventName, TData> {
 // ────────────────── MESSAGE EVENTS ──────────────────
 
 export interface MessageData {
+  /** Messenger'da `{PSID}@messenger`, Instagram'da `{IGSID}@instagram`. */
   key: MessageKey
-  pushName?: string
+  /** Messenger/Instagram'da profil adı alınamazsa `null`. */
+  pushName?: string | null
   status?: string
   message?: {
     conversation?: string
@@ -53,6 +70,8 @@ export interface MessageData {
     locationMessage?: { degreesLatitude: number; degreesLongitude: number }
     contactMessage?: { displayName: string; vcard: string }
     reactionMessage?: { key: MessageKey; text: string }
+    /** Düğme yanıtı; Messenger/Instagram hızlı yanıt ve postback'leri de bu biçimde gelir. */
+    buttonsResponseMessage?: { selectedButtonId: string; selectedDisplayText?: string }
     [key: string]: unknown
   }
   messageType?: string
@@ -60,6 +79,10 @@ export interface MessageData {
   instanceId: string
   source?: string
   contextInfo?: Record<string, unknown>
+  /** Sayfa gelen kutusundan ya da başka bir uygulamadan gönderilen mesaj (`fromMe: true`). */
+  origin?: 'external'
+  /** `origin: 'external'` ise gönderen Meta uygulamasının kimliği. */
+  appId?: string
 }
 
 export type MessagesUpsertEvent = WebhookEnvelope<'messages.upsert', MessageData>
@@ -76,6 +99,8 @@ export interface ConnectionData {
   instance: string
   state: 'open' | 'close' | 'connecting'
   statusReason?: number
+  /** Messenger/Instagram: `token_invalid`, `subscription_lost`, `revoked`. */
+  reason?: ConnectionUpdateReason
 }
 
 export type ConnectionUpdateEvent = WebhookEnvelope<'connection.update', ConnectionData>
@@ -127,6 +152,35 @@ export interface CallData {
 
 export type CallEvent = WebhookEnvelope<'call', CallData[]>
 
+// ────────────────── COMMENTS (Facebook / Instagram) ──────────────────
+
+/** Kullanıcının yeni yorumu ya da yanıtı. Sayfanın/hesabın kendi yorumu bu olayla gelmez. */
+export type CommentReceivedEvent = WebhookEnvelope<'comment.received', MetaCommentEventData>
+/** Düzenlendi, gizlendi ya da gösterildi (`data.change`). */
+export type CommentUpdatedEvent = WebhookEnvelope<'comment.updated', MetaCommentEventData>
+export type CommentRemovedEvent = WebhookEnvelope<'comment.removed', MetaCommentEventData>
+/** Sayfanın/hesabın yanıtı; `data.comment.sentByApi` API'den mi Meta arayüzünden mi gönderildiğini söyler. */
+export type CommentReplySentEvent = WebhookEnvelope<'comment.reply.sent', MetaCommentReplyEventData>
+
+export type CommentWebhookEvent =
+  | CommentReceivedEvent
+  | CommentUpdatedEvent
+  | CommentRemovedEvent
+  | CommentReplySentEvent
+
+// ────────────────── LEADS (Facebook Lead Ads) ──────────────────
+
+type LeadEnvelope<TEvent extends LeadWebhookEnvelope['event']> = Omit<LeadWebhookEnvelope, 'event'> & {
+  event: TEvent
+}
+
+/** Lead Meta'dan tam çekildi (webhook ya da içe aktarma; `data.source`). Zarfta oturum anahtarı yok. */
+export type LeadReceivedEvent = LeadEnvelope<'lead.received'>
+/** Durum, not ya da okundu bilgisi değişti (`data.changes`). */
+export type LeadUpdatedEvent = LeadEnvelope<'lead.updated'>
+
+export type LeadWebhookEvent = LeadReceivedEvent | LeadUpdatedEvent
+
 // ────────────────── DISCRIMINATED UNION ──────────────────
 
 export type AnyWebhookEvent =
@@ -142,18 +196,29 @@ export type AnyWebhookEvent =
   | ChatsUpdateEvent
   | ChatsDeleteEvent
   | CallEvent
+  | CommentWebhookEvent
+  | LeadWebhookEvent
 
 /**
  * Mesaj içerik metnini herhangi bir mesaj tipinden çıkarır.
- * conversation, extendedTextMessage, image/video/document caption'larını dener.
+ * conversation, extendedTextMessage, düğme/hızlı yanıt, image/video/document caption'larını dener.
  */
 export function getMessageText(data: MessageData): string | null {
   const m = data.message
   if (!m) return null
   if (m.conversation) return m.conversation
   if (m.extendedTextMessage?.text) return m.extendedTextMessage.text
+  if (m.buttonsResponseMessage?.selectedDisplayText) return m.buttonsResponseMessage.selectedDisplayText
   if (m.imageMessage?.caption) return m.imageMessage.caption
   if (m.videoMessage?.caption) return m.videoMessage.caption
   if (m.documentMessage?.fileName) return m.documentMessage.fileName
   return null
+}
+
+/**
+ * Gönderimde `number` olarak kullanılacak kimlik: WhatsApp'ta telefon, Messenger'da PSID,
+ * Instagram'da IGSID (`remoteJid`'in `@` öncesi).
+ */
+export function getChannelUserId(event: { data: { key: Pick<MessageKey, 'remoteJid'> } }): string {
+  return event.data.key.remoteJid.split('@')[0]
 }
