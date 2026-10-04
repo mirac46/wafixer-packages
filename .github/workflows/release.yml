@@ -51,6 +51,7 @@ jobs:
           npm ci
           npm run build
           npm run lint
+          npm run typecheck
           npm run test
 
       # n8n-nodes-wafixer wafixer-sdk'ya bağımlı; SDK önce yayınlanır.

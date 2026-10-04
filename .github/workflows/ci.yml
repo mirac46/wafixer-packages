@@ -34,6 +34,9 @@ jobs:
       - name: Lint (n8n nodes)
         run: npm run lint --workspaces --if-present
 
+      - name: Typecheck (kaynak ve testler)
+        run: npm run typecheck
+
       - name: Test
         run: npm run test --workspaces --if-present
 
