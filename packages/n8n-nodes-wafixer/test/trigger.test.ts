@@ -70,6 +70,17 @@ describe('incoming event filter', () => {
     return response.workflowData?.[0]?.[0]?.json ?? null
   }
 
+  it('passes private reply events', async () => {
+    const event = {
+      ...envelope,
+      event: 'comment.private_reply.sent',
+      channel: 'MESSENGER',
+      data: { comment: metaComment, post: null, message: { id: 'm_1', remoteJid: 'P@messenger', text: 'x', timestamp: 1 } },
+    }
+    expect(await receive({ events: ['COMMENT_PRIVATE_REPLY_SENT'] }, event)).toEqual(event)
+    expect(await receive({ events: ['COMMENT_REPLY_SENT'] }, event)).toBeNull()
+  })
+
   it('passes selected comment and lead events', async () => {
     const commentEvent = { ...envelope, event: 'comment.received', channel: 'MESSENGER', data: { comment: metaComment, post: null } }
     expect(await receive({ events: ['COMMENT_RECEIVED'] }, commentEvent)).toEqual(commentEvent)

@@ -33,7 +33,7 @@ describe('WAFixer action node description', () => {
   })
 
   it('offers comment and lead operations', () => {
-    expect(operationValues('comment')).toEqual(['getAll', 'import', 'markRead', 'reply'])
+    expect(operationValues('comment')).toEqual(['delete', 'getAll', 'hide', 'import', 'markRead', 'privateReply', 'reply'])
     expect(operationValues('lead')).toEqual(['get', 'getForms', 'getAll', 'update'])
   })
 
@@ -66,7 +66,15 @@ describe('WAFixer Trigger description', () => {
   const values = (events?.options ?? []).map((o) => ('value' in o ? String(o.value) : ''))
 
   it('offers comment and lead events', () => {
-    for (const name of ['COMMENT_RECEIVED', 'COMMENT_UPDATED', 'COMMENT_REMOVED', 'COMMENT_REPLY_SENT', 'LEAD_RECEIVED', 'LEAD_UPDATED']) {
+    for (const name of [
+      'COMMENT_RECEIVED',
+      'COMMENT_UPDATED',
+      'COMMENT_REMOVED',
+      'COMMENT_REPLY_SENT',
+      'COMMENT_PRIVATE_REPLY_SENT',
+      'LEAD_RECEIVED',
+      'LEAD_UPDATED',
+    ]) {
       expect(values).toContain(name)
     }
   })

@@ -93,6 +93,59 @@ describe('Comment resource', () => {
   })
 })
 
+describe('Comment moderation', () => {
+  it('Hide or Show sends the hidden flag', async () => {
+    server.on('POST', '/comment/hide/Klinik/222_333', ({ body }) => ({
+      body: { comment: { ...metaComment, hidden: (body as { hidden: boolean }).hidden }, changed: true },
+    }))
+    const [hidden] = await run({ resource: 'comment', operation: 'hide', commentId: '222_333', hidden: true })
+    expect(hidden[0].json).toMatchObject({ changed: true, comment: { hidden: true } })
+    await run({ resource: 'comment', operation: 'hide', commentId: '222_333', hidden: false })
+    expect(server.last().body).toEqual({ hidden: false })
+  })
+
+  it('Delete calls the delete endpoint', async () => {
+    server.on('DELETE', '/comment/delete/Klinik/222_333', {
+      body: { comment: { ...metaComment, status: 'removed' }, changed: true },
+    })
+    const [items] = await run({ resource: 'comment', operation: 'delete', commentId: '222_333' })
+    expect(items[0].json).toMatchObject({ changed: true, comment: { status: 'removed' } })
+  })
+
+  it('Private Reply sends the message and returns it', async () => {
+    const message = { id: 'm_PRIVATE_1', remoteJid: 'PSID_TEST_1@messenger', text: 'Detaylar', timestamp: 1790000500 }
+    server.on('POST', '/comment/privateReply/Klinik/222_333', { status: 201, body: { comment: metaComment, message } })
+    const [items] = await run({ resource: 'comment', operation: 'privateReply', commentId: '222_333', privateText: 'Detaylar' })
+    expect(items[0].json.message).toEqual(message)
+    expect(server.last().body).toEqual({ text: 'Detaylar' })
+  })
+
+  it('second private reply explains the one-per-comment rule', async () => {
+    server.on('POST', '/comment/privateReply/Klinik/222_333', {
+      status: 409,
+      body: { error: 'Bu yoruma daha önce özel yanıt gönderildi.', code: 'INVALID_REQUEST', details: { reason: 'private_reply_already_sent' } },
+    })
+    const error = await run({ resource: 'comment', operation: 'privateReply', commentId: '222_333', privateText: 'x' }).catch(
+      (e: unknown) => e,
+    )
+    if (!(error instanceof NodeApiError)) throw error
+    expect(error.httpCode).toBe('409')
+    expect(error.description).toContain('one per comment')
+  })
+
+  it('private reply after 7 days explains the window', async () => {
+    server.on('POST', '/comment/privateReply/Klinik/222_333', {
+      status: 422,
+      body: { error: 'Özel yanıt yalnız 7 gün içinde.', code: 'WINDOW_CLOSED', details: { window: 'private_reply' } },
+    })
+    const error = await run({ resource: 'comment', operation: 'privateReply', commentId: '222_333', privateText: 'x' }).catch(
+      (e: unknown) => e,
+    )
+    if (!(error instanceof NodeApiError)) throw error
+    expect(error.description).toContain('within 7 days')
+  })
+})
+
 describe('Lead resource', () => {
   it('Get Many sends filters as query and returns one item per lead', async () => {
     server.on('GET', '/leads/items/Klinik', { body: { leads: [lead, { ...lead, id: 'lead_2' }], nextCursor: null } })

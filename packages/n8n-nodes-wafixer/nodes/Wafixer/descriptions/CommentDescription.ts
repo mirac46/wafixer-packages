@@ -12,10 +12,22 @@ export const commentOperations: INodeProperties[] = [
     default: 'getAll',
     options: [
       {
+        name: 'Delete',
+        value: 'delete',
+        description: 'Delete a comment on Facebook or Instagram. Replies of a top-level comment are removed too.',
+        action: 'Delete a comment',
+      },
+      {
         name: 'Get Many',
         value: 'getAll',
         description: 'List Facebook Page or Instagram comments of the session, newest first',
         action: 'Get many comments',
+      },
+      {
+        name: 'Hide or Show',
+        value: 'hide',
+        description: 'Hide a comment from the public or show a hidden comment again',
+        action: 'Hide or show a comment',
       },
       {
         name: 'Import',
@@ -28,6 +40,13 @@ export const commentOperations: INodeProperties[] = [
         value: 'markRead',
         description: 'Mark comments as read in WAFixer (not sent to Meta)',
         action: 'Mark comments as read',
+      },
+      {
+        name: 'Private Reply',
+        value: 'privateReply',
+        description:
+          'Send a private message (DM) to the comment author. Possible once per comment, within 7 days after the comment.',
+        action: 'Send a private reply to a comment',
       },
       {
         name: 'Reply',
@@ -122,7 +141,7 @@ export const commentFields: INodeProperties[] = [
     ],
   },
 
-  // ─────────── reply ───────────
+  // ─────────── reply / privateReply / hide / delete ───────────
   {
     displayName: 'Comment ID',
     name: 'commentId',
@@ -130,7 +149,7 @@ export const commentFields: INodeProperties[] = [
     default: '={{ $json.data?.comment?.id ?? $json.id }}',
     required: true,
     description: 'Meta comment ID. The default reads it from a WAFixer Trigger comment event or a listed comment.',
-    displayOptions: show(['reply']),
+    displayOptions: show(['reply', 'privateReply', 'hide', 'delete']),
   },
   {
     displayName: 'Text',
@@ -141,6 +160,25 @@ export const commentFields: INodeProperties[] = [
     required: true,
     description: 'Public reply. Facebook allows 8000 characters, Instagram 2200.',
     displayOptions: show(['reply']),
+  },
+  {
+    displayName: 'Message',
+    name: 'privateText',
+    type: 'string',
+    typeOptions: { rows: 3 },
+    default: '',
+    required: true,
+    description:
+      'Private message to the comment author. Facebook allows 2000 characters, Instagram 1000 bytes. It also appears in the chat as an outgoing message.',
+    displayOptions: show(['privateReply']),
+  },
+  {
+    displayName: 'Hidden',
+    name: 'hidden',
+    type: 'boolean',
+    default: true,
+    description: 'Whether to hide the comment. Turn off to show a hidden comment again.',
+    displayOptions: show(['hide']),
   },
 
   // ─────────── markRead ───────────

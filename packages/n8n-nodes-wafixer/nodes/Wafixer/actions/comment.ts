@@ -71,6 +71,20 @@ export async function executeCommentOperation(
       const text = ctx.getNodeParameter('text', i) as string
       return [await wa.comment.reply(instance, commentId, { text })]
     }
+    case 'privateReply': {
+      const commentId = requiredText(ctx, 'commentId', i, 'Comment ID is required')
+      const text = ctx.getNodeParameter('privateText', i) as string
+      return [await wa.comment.privateReply(instance, commentId, { text })]
+    }
+    case 'hide': {
+      const commentId = requiredText(ctx, 'commentId', i, 'Comment ID is required')
+      const hidden = ctx.getNodeParameter('hidden', i, true) as boolean
+      return [await wa.comment.hide(instance, commentId, { hidden })]
+    }
+    case 'delete': {
+      const commentId = requiredText(ctx, 'commentId', i, 'Comment ID is required')
+      return [await wa.comment.delete(instance, commentId)]
+    }
     case 'markRead':
       return [await wa.comment.markRead(instance, markReadRequest(ctx, i))]
     case 'import': {

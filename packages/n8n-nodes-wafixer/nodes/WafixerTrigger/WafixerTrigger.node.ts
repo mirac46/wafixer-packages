@@ -22,8 +22,13 @@ type WafixerCredentials = { baseUrl: string; apiKey: string }
 const EVENT_OPTIONS: Array<INodePropertyOptions & { value: WebhookEventConstant }> = [
   { name: 'Chat Deleted', value: 'CHATS_DELETE', description: 'Chats.delete' },
   { name: 'Chat Update', value: 'CHATS_UPDATE', description: 'Chats.update' },
+  {
+    name: 'Comment Private Reply Sent',
+    value: 'COMMENT_PRIVATE_REPLY_SENT',
+    description: 'Comment.private_reply.sent — private message sent to a comment author',
+  },
   { name: 'Comment Received', value: 'COMMENT_RECEIVED', description: 'Comment.received — new Facebook or Instagram comment' },
-  { name: 'Comment Removed', value: 'COMMENT_REMOVED', description: 'Comment.removed' },
+  { name: 'Comment Removed', value: 'COMMENT_REMOVED', description: 'Comment.removed — deleted on Meta or through WAFixer (data.reason)' },
   { name: 'Comment Reply Sent', value: 'COMMENT_REPLY_SENT', description: 'Comment.reply.sent — reply of the Page or account' },
   { name: 'Comment Updated', value: 'COMMENT_UPDATED', description: 'Comment.updated — edited, hidden or unhidden' },
   { name: 'Connection State', value: 'CONNECTION_UPDATE', description: 'Connection.update' },
