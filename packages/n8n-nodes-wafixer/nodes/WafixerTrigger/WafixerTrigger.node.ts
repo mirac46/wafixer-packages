@@ -9,6 +9,7 @@ import type {
 } from 'n8n-workflow'
 
 import {
+  WEBHOOK_EVENTS,
   Wafixer as WafixerClient,
   isWebhookEventConstant,
   webhookEventConstant,
@@ -18,38 +19,76 @@ import { wafixerLoadOptions } from '../shared/instanceOptions'
 
 type WafixerCredentials = { baseUrl: string; apiKey: string }
 
-/** Seçilebilen olaylar; değerler `webhook/set` olay listesindeki adlardır. */
-const EVENT_OPTIONS: Array<INodePropertyOptions & { value: WebhookEventConstant }> = [
-  { name: 'Chat Deleted', value: 'CHATS_DELETE', description: 'Chats.delete' },
-  { name: 'Chat Update', value: 'CHATS_UPDATE', description: 'Chats.update' },
-  {
+type EventLabel = { name: string; description: string }
+
+/**
+ * Her `webhook/set` olayının etiketi. Tip `WEBHOOK_EVENTS`'in tamamını ister: SDK'ya yeni olay
+ * eklenince burada etiket yazılmadan derlenmez.
+ */
+const EVENT_LABELS: Record<WebhookEventConstant, EventLabel> = {
+  APPLICATION_STARTUP: { name: 'Server Started', description: 'Application.startup — the WAFixer server started' },
+  QRCODE_UPDATED: {
+    name: 'QR Code Updated',
+    description: 'Qrcode.updated — new QR code for a QR session, or the QR attempt limit was reached',
+  },
+  MESSAGES_SET: { name: 'Message History Synced', description: 'Messages.set — message history after pairing (large payload)' },
+  MESSAGES_UPSERT: { name: 'New Message', description: 'Messages.upsert' },
+  MESSAGES_EDITED: { name: 'Message Edited', description: 'Messages.edited — the contact edited a message' },
+  MESSAGES_UPDATE: { name: 'Message Status', description: 'Messages.update' },
+  MESSAGES_DELETE: { name: 'Message Deleted', description: 'Messages.delete' },
+  SEND_MESSAGE: { name: 'Outgoing Message', description: 'Send.message' },
+  SEND_MESSAGE_UPDATE: { name: 'Outgoing Message Edited', description: 'Send.message.update — a sent message was edited' },
+  CONTACTS_SET: { name: 'Contacts Synced', description: 'Contacts.set — contact list after pairing (large payload)' },
+  CONTACTS_UPSERT: { name: 'New Contact', description: 'Contacts.upsert' },
+  CONTACTS_UPDATE: { name: 'Contact Update', description: 'Contacts.update' },
+  PRESENCE_UPDATE: { name: 'Presence', description: 'Presence.update' },
+  CHATS_SET: { name: 'Chats Synced', description: 'Chats.set — chat list after pairing (large payload)' },
+  CHATS_UPSERT: { name: 'New Chat', description: 'Chats.upsert' },
+  CHATS_UPDATE: { name: 'Chat Update', description: 'Chats.update' },
+  CHATS_DELETE: { name: 'Chat Deleted', description: 'Chats.delete' },
+  GROUPS_UPSERT: { name: 'Group Created', description: 'Groups.upsert' },
+  GROUP_UPDATE: { name: 'Group Updated', description: 'Groups.update' },
+  GROUP_PARTICIPANTS_UPDATE: { name: 'Group Participants', description: 'Group-participants.update' },
+  CONNECTION_UPDATE: {
+    name: 'Connection State',
+    description: 'Connection.update — includes data.reconnect for QR sessions that reconnect automatically',
+  },
+  LABELS_EDIT: { name: 'Label Changed', description: 'Labels.edit — WhatsApp Business label created, changed or deleted' },
+  LABELS_ASSOCIATION: { name: 'Label Assigned', description: 'Labels.association — label added to or removed from a chat' },
+  CALL: { name: 'Incoming Call', description: 'Call' },
+  TYPEBOT_START: { name: 'Typebot Started', description: 'Typebot.start' },
+  TYPEBOT_CHANGE_STATUS: { name: 'Typebot Status', description: 'Typebot.change-status' },
+  REMOVE_INSTANCE: { name: 'Session Deleted', description: 'Remove.instance — data is null' },
+  LOGOUT_INSTANCE: { name: 'Session Logged Out', description: 'Logout.instance — data is null' },
+  INSTANCE_CREATE: { name: 'Session Created', description: 'Instance.create' },
+  INSTANCE_DELETE: { name: 'Session Removed', description: 'Instance.delete' },
+  STATUS_INSTANCE: { name: 'Session Status', description: 'Status.instance — session closed, with the disconnect reason' },
+  COMMENT_RECEIVED: { name: 'Comment Received', description: 'Comment.received — new Facebook or Instagram comment' },
+  COMMENT_UPDATED: { name: 'Comment Updated', description: 'Comment.updated — edited, hidden or unhidden' },
+  COMMENT_REMOVED: {
+    name: 'Comment Removed',
+    description: 'Comment.removed — deleted on Meta or through WAFixer (data.reason)',
+  },
+  COMMENT_REPLY_SENT: { name: 'Comment Reply Sent', description: 'Comment.reply.sent — reply of the Page or account' },
+  COMMENT_PRIVATE_REPLY_SENT: {
     name: 'Comment Private Reply Sent',
-    value: 'COMMENT_PRIVATE_REPLY_SENT',
     description: 'Comment.private_reply.sent — private message sent to a comment author',
   },
-  { name: 'Comment Received', value: 'COMMENT_RECEIVED', description: 'Comment.received — new Facebook or Instagram comment' },
-  { name: 'Comment Removed', value: 'COMMENT_REMOVED', description: 'Comment.removed — deleted on Meta or through WAFixer (data.reason)' },
-  { name: 'Comment Reply Sent', value: 'COMMENT_REPLY_SENT', description: 'Comment.reply.sent — reply of the Page or account' },
-  { name: 'Comment Updated', value: 'COMMENT_UPDATED', description: 'Comment.updated — edited, hidden or unhidden' },
-  { name: 'Connection State', value: 'CONNECTION_UPDATE', description: 'Connection.update' },
-  { name: 'Contact Update', value: 'CONTACTS_UPDATE', description: 'Contacts.update' },
-  { name: 'Group Created', value: 'GROUPS_UPSERT', description: 'Groups.upsert' },
-  { name: 'Group Participants', value: 'GROUP_PARTICIPANTS_UPDATE', description: 'Group-participants.update' },
-  { name: 'Group Updated', value: 'GROUP_UPDATE', description: 'Groups.update' },
-  { name: 'Incoming Call', value: 'CALL', description: 'Call' },
-  { name: 'Lead Received', value: 'LEAD_RECEIVED', description: 'Lead.received — new Facebook Lead Ads lead' },
-  { name: 'Lead Updated', value: 'LEAD_UPDATED', description: 'Lead.updated — status, note or read flag changed' },
-  { name: 'Message Deleted', value: 'MESSAGES_DELETE', description: 'Messages.delete' },
-  { name: 'Message Status', value: 'MESSAGES_UPDATE', description: 'Messages.update' },
-  { name: 'New Chat', value: 'CHATS_UPSERT', description: 'Chats.upsert' },
-  { name: 'New Contact', value: 'CONTACTS_UPSERT', description: 'Contacts.upsert' },
-  { name: 'New Message', value: 'MESSAGES_UPSERT', description: 'Messages.upsert' },
-  { name: 'Outgoing Message', value: 'SEND_MESSAGE', description: 'Send.message' },
-  { name: 'Presence', value: 'PRESENCE_UPDATE', description: 'Presence.update' },
-]
+  LEAD_RECEIVED: { name: 'Lead Received', description: 'Lead.received — new Facebook Lead Ads lead' },
+  LEAD_UPDATED: { name: 'Lead Updated', description: 'Lead.updated — status, note or read flag changed' },
+}
+
+/** Seçilebilen olaylar; değerler `webhook/set` olay listesindeki adlardır. */
+const EVENT_OPTIONS: Array<INodePropertyOptions & { value: WebhookEventConstant }> = WEBHOOK_EVENTS.map((value) => ({
+  value,
+  ...EVENT_LABELS[value],
+})).sort((a, b) => a.name.localeCompare(b.name, 'en'))
+
+// Eşleme sonrası toplu geçmiş olayları çok büyük gövde taşır; yalnız açıkça seçilince kaydedilir.
+const BULK_EVENTS: ReadonlySet<WebhookEventConstant> = new Set(['MESSAGES_SET', 'CONTACTS_SET', 'CHATS_SET'])
 
 /** Hiç olay seçilmezse kaydedilen liste. */
-export const ALL_EVENTS: WebhookEventConstant[] = EVENT_OPTIONS.map((option) => option.value)
+export const ALL_EVENTS: WebhookEventConstant[] = WEBHOOK_EVENTS.filter((event) => !BULK_EVENTS.has(event))
 
 const WHATSAPP_CHANNELS = ['QR', 'META', 'WAFIXER']
 
@@ -135,7 +174,7 @@ export class WafixerTrigger implements INodeType {
         type: 'multiOptions',
         default: ['MESSAGES_UPSERT'],
         description:
-          'Events to listen to. Comment events come from Messenger (Facebook Page) and Instagram sessions; lead events from the session the Facebook Page is connected to for leads.',
+          'Events to listen to. Comment events come from Messenger (Facebook Page) and Instagram sessions; lead events from the session the Facebook Page is connected to for leads. Empty means all events except the history sync events.',
         options: EVENT_OPTIONS,
       },
       {

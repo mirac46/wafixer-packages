@@ -101,6 +101,27 @@ describe('incoming event filter', () => {
     expect(await receive({ events: ['GROUP_UPDATE'] }, { ...envelope, event: 'groups.update', data: { id: 'g' } })).not.toBeNull()
   })
 
+  it('matches session, label and edit events to their options', async () => {
+    const pairs: Array<[string, string]> = [
+      ['qrcode.updated', 'QRCODE_UPDATED'],
+      ['messages.edited', 'MESSAGES_EDITED'],
+      ['send.message.update', 'SEND_MESSAGE_UPDATE'],
+      ['labels.association', 'LABELS_ASSOCIATION'],
+      ['logout.instance', 'LOGOUT_INSTANCE'],
+      ['typebot.change-status', 'TYPEBOT_CHANGE_STATUS'],
+    ]
+    for (const [event, option] of pairs) {
+      expect(await receive({ events: [option] }, { ...envelope, event, data: {} }), event).not.toBeNull()
+      expect(await receive({ events: ['MESSAGES_UPSERT'] }, { ...envelope, event, data: {} }), event).toBeNull()
+    }
+  })
+
+  it('passes the QR reconnect state of connection.update', async () => {
+    const reconnect = { phase: 'reconnecting', attempt: 1, maxAttempts: null, nextAttemptAt: '2026-10-06T21:31:00.000Z' }
+    const event = { ...envelope, event: 'connection.update', channel: 'QR', data: { instance: 'Klinik', state: 'connecting', reconnect } }
+    expect(await receive({ events: ['CONNECTION_UPDATE'], options: { channels: ['WHATSAPP'] } }, event)).toEqual(event)
+  })
+
   it('filters by channel; bodies without channel pass', async () => {
     const message = (channel: string | null) => ({
       ...envelope,

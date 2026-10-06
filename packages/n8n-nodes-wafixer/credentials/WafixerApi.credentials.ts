@@ -17,7 +17,8 @@ export class WafixerApi implements ICredentialType {
       type: 'string',
       default: 'https://wafixer.com',
       placeholder: 'https://wafixer.com',
-      description: 'Base URL of the WAFixer installation, without a trailing slash',
+      description:
+        'Base URL of the WAFixer API, without a trailing slash. Keep https://wafixer.com unless WAFixer gave you another address.',
       required: true,
     },
     {

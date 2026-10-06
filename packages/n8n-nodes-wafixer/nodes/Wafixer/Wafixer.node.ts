@@ -1,4 +1,5 @@
 import type {
+  IDataObject,
   IExecuteFunctions,
   ILoadOptionsFunctions,
   INodeExecutionData,
@@ -11,10 +12,35 @@ import { NodeOperationError } from 'n8n-workflow'
 import { Wafixer as WafixerClient, type QuickReply } from 'wafixer-sdk'
 import { errorOutput, toNodeError } from '../shared/errors'
 import { wafixerLoadOptions } from '../shared/instanceOptions'
+import { executeChatOperation } from './actions/chat'
 import { executeCommentOperation } from './actions/comment'
 import { executeLeadOperation } from './actions/lead'
+import { executeMessageExtraOperation, MESSAGE_EXTRA_OPERATIONS } from './actions/message'
+import { executeSessionOperation, SESSION_OPERATIONS_WITHOUT_INSTANCE } from './actions/session'
+import { chatFields, chatOperations } from './descriptions/ChatDescription'
 import { commentFields, commentOperations } from './descriptions/CommentDescription'
 import { leadFields, leadOperations } from './descriptions/LeadDescription'
+import { messageExtraFields, messageExtraOperationOptions } from './descriptions/MessageExtraDescription'
+import { sessionOperations } from './descriptions/SessionDescription'
+
+const MESSAGE_OPERATION_OPTIONS = [
+  { name: 'Mark as Read', value: 'markAsRead', description: 'Mark messages as read (blue ticks on WhatsApp)', action: 'Mark messages as read' },
+  { name: 'Reply to Message', value: 'replyTo', description: 'Reply to the message of a trigger event, quoting it', action: 'Reply to a message' },
+  { name: 'Send Audio (PTT)', value: 'sendAudio', description: 'Send a push-to-talk voice note', action: 'Send a voice note' },
+  { name: 'Send Buttons', value: 'sendButtons', description: 'Send an interactive message with buttons', action: 'Send a buttons message' },
+  { name: 'Send Contact', value: 'sendContact', description: 'Share a contact card', action: 'Send a contact card' },
+  { name: 'Send List', value: 'sendList', description: 'Send an interactive list message', action: 'Send a list message' },
+  { name: 'Send Location', value: 'sendLocation', description: 'Share a location', action: 'Send a location' },
+  { name: 'Send Media', value: 'sendMedia', description: 'Send an image, video, document or audio file', action: 'Send a media file' },
+  { name: 'Send Poll', value: 'sendPoll', description: 'Send a poll', action: 'Send a poll' },
+  { name: 'Send Presence', value: 'sendPresence', description: 'Show typing, recording or online status', action: 'Send a presence indicator' },
+  { name: 'Send Reaction', value: 'sendReaction', description: 'React to a message with an emoji', action: 'Send a reaction' },
+  { name: 'Send Sticker', value: 'sendSticker', description: 'Send a sticker', action: 'Send a sticker' },
+  { name: 'Send Text', value: 'sendText', description: 'Send a plain text message', action: 'Send a text message' },
+  ...messageExtraOperationOptions,
+].sort((a, b) => a.name.localeCompare(b.name, 'en'))
+
+const EXTRA_OPERATIONS: ReadonlySet<string> = new Set(MESSAGE_EXTRA_OPERATIONS)
 
 type QuickReplyRow = { title?: string; payload?: string; type?: QuickReply['type'] }
 type MetaOptionsParameter = { humanAgent?: boolean; quickReplies?: { reply?: QuickReplyRow[] } }
@@ -37,6 +63,28 @@ function metaTextOptions(options: MetaOptionsParameter): {
   }
 }
 
+function executeResource(
+  ctx: IExecuteFunctions,
+  wa: WafixerClient,
+  resource: string,
+  instance: string,
+  operation: string,
+  i: number,
+): Promise<IDataObject[]> {
+  switch (resource) {
+    case 'chat':
+      return executeChatOperation(ctx, wa, instance, operation, i)
+    case 'comment':
+      return executeCommentOperation(ctx, wa, instance, operation, i)
+    case 'lead':
+      return executeLeadOperation(ctx, wa, instance, operation, i)
+    case 'session':
+      return executeSessionOperation(ctx, wa, instance, operation, i)
+    default:
+      throw new NodeOperationError(ctx.getNode(), `Unknown resource: ${resource}`, { itemIndex: i })
+  }
+}
+
 export class Wafixer implements INodeType {
   methods: {
     loadOptions: {
@@ -51,7 +99,8 @@ export class Wafixer implements INodeType {
     group: ['transform'],
     version: 1,
     subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-    description: 'Send WhatsApp, Messenger and Instagram messages, reply to comments and manage Facebook leads',
+    description:
+      'Send WhatsApp, Messenger and Instagram messages, look up chats and contacts, reply to comments, manage Facebook leads and sessions',
     defaults: {
       name: 'WAFixer',
     },
@@ -76,6 +125,7 @@ export class Wafixer implements INodeType {
         required: true,
         description:
           'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
+        displayOptions: { hide: { operation: SESSION_OPERATIONS_WITHOUT_INSTANCE } },
       },
 
       // ─────────── Resource ───────────
@@ -86,9 +136,11 @@ export class Wafixer implements INodeType {
         noDataExpression: true,
         default: 'message',
         options: [
+          { name: 'Chat', value: 'chat', description: 'Chats, contacts, stored messages and number checks' },
           { name: 'Comment', value: 'comment', description: 'Facebook Page and Instagram comments' },
           { name: 'Lead', value: 'lead', description: 'Facebook Lead Ads leads and forms' },
           { name: 'Message', value: 'message', description: 'WhatsApp, Messenger and Instagram messages' },
+          { name: 'Session', value: 'session', description: 'Sessions and their connection state' },
         ],
       },
 
@@ -100,21 +152,7 @@ export class Wafixer implements INodeType {
         noDataExpression: true,
         displayOptions: { show: { resource: ['message'] } },
         default: 'sendText',
-        options: [
-          { name: 'Mark as Read', value: 'markAsRead', description: 'Mark messages as read (blue ticks on WhatsApp)', action: 'Mark messages as read' },
-          { name: 'Reply to Message', value: 'replyTo', description: 'Reply to the message of a trigger event, quoting it', action: 'Reply to a message' },
-          { name: 'Send Audio (PTT)', value: 'sendAudio', description: 'Send a push-to-talk voice note', action: 'Send a voice note' },
-          { name: 'Send Buttons', value: 'sendButtons', description: 'Send an interactive message with buttons', action: 'Send a buttons message' },
-          { name: 'Send Contact', value: 'sendContact', description: 'Share a contact card', action: 'Send a contact card' },
-          { name: 'Send List', value: 'sendList', description: 'Send an interactive list message', action: 'Send a list message' },
-          { name: 'Send Location', value: 'sendLocation', description: 'Share a location', action: 'Send a location' },
-          { name: 'Send Media', value: 'sendMedia', description: 'Send an image, video, document or audio file', action: 'Send a media file' },
-          { name: 'Send Poll', value: 'sendPoll', description: 'Send a poll', action: 'Send a poll' },
-          { name: 'Send Presence', value: 'sendPresence', description: 'Show typing, recording or online status', action: 'Send a presence indicator' },
-          { name: 'Send Reaction', value: 'sendReaction', description: 'React to a message with an emoji', action: 'Send a reaction' },
-          { name: 'Send Sticker', value: 'sendSticker', description: 'Send a sticker', action: 'Send a sticker' },
-          { name: 'Send Text', value: 'sendText', description: 'Send a plain text message', action: 'Send a text message' },
-        ],
+        options: MESSAGE_OPERATION_OPTIONS,
       },
 
       // ────────────────────────────────────────────────────────────────
@@ -142,6 +180,8 @@ export class Wafixer implements INodeType {
               'sendButtons',
               'sendList',
               'sendPresence',
+              'sendPtv',
+              'sendTemplate',
             ],
           },
         },
@@ -603,10 +643,14 @@ export class Wafixer implements INodeType {
         ],
       },
 
+      ...messageExtraFields,
+      ...chatOperations,
+      ...chatFields,
       ...commentOperations,
       ...commentFields,
       ...leadOperations,
       ...leadFields,
+      ...sessionOperations,
     ],
   }
 
@@ -627,14 +671,17 @@ export class Wafixer implements INodeType {
       try {
         const resource = this.getNodeParameter('resource', i, 'message') as string
         const operation = this.getNodeParameter('operation', i) as string
-        const instance = this.getNodeParameter('instance', i) as string
+        const instance = this.getNodeParameter('instance', i, '') as string
 
-        if (resource === 'comment' || resource === 'lead') {
-          const rows =
-            resource === 'comment'
-              ? await executeCommentOperation(this, wa, instance, operation, i)
-              : await executeLeadOperation(this, wa, instance, operation, i)
+        if (resource !== 'message') {
+          const rows = await executeResource(this, wa, resource, instance, operation, i)
           returnData.push(...rows.map((json) => ({ json, pairedItem: { item: i } })))
+          continue
+        }
+
+        if (EXTRA_OPERATIONS.has(operation)) {
+          const json = await executeMessageExtraOperation(this, wa, instance, operation, i)
+          returnData.push({ json, pairedItem: { item: i } })
           continue
         }
 
