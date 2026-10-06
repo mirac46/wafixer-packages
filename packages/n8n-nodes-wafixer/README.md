@@ -27,8 +27,10 @@ n8n'i yeniden başlat. Node panelinde "WAFixer" ve "WAFixer Trigger" görünecek
 2. **Base URL:** `https://wafixer.com` (varsayılan). WAFixer sana başka bir adres vermediyse değiştirme;
    `api.wafixer.com` henüz genel kullanımda değil.
 3. **API Key:** Panel → **Ayarlar → API Anahtarları** sekmesinden **Yeni Anahtar Oluştur** ile üretilen `wfx_...` ile başlayan anahtar
-4. **Test** butonuyla doğrula → ✓ yeşil
-5. **Save**
+4. **Webhook Signing Secret** (isteğe bağlı): oturumun webhook imza sırrı (`whsec_...`). Doluysa WAFixer Trigger
+   imzası geçersiz ya da 5 dakikadan eski olayları **401** ile reddeder; boşsa imza aranmaz.
+5. **Test** butonuyla doğrula → ✓ yeşil
+6. **Save**
 
 > **Not:** Panel `wfx_` ön ekli kullanıcı anahtarlarını otomatik tanır. Anahtar bir kez gösterilir, kaybedersen yenisini üret.
 > Credential kaydedilince WAFixer action ve trigger node'larında oturumlar otomatik listelenir. Bağlı oturumlar `Active`, yeniden QR isteyenler `QR Required` etiketiyle görünür.
@@ -158,6 +160,12 @@ bütün olaylar kaydedilir; o üçü çok büyük gövde taşır, yalnız açık
 - **Ignore Outgoing Messages** — kendi gönderdiğin mesajları filtreler
 
 Olaylar en az bir kez teslim edilir; yorumları `data.comment.id`, lead'leri `data.id` ile tekilleştir.
+
+**İmza doğrulama:** webhook adresini bilen biri sahte olay gönderip akışı tetikleyemesin diye oturuma imza sırrı
+tanımla ve aynı değeri credential'daki **Webhook Signing Secret** alanına yaz. Sır
+`POST /webhook/signingSecret/{oturum}` ile üretilir (ya da `wafixer-sdk` → `webhook.rotateSigningSecret`); değer yalnız
+o yanıtta bir kez görünür. Sır tanımlıyken WAFixer her olayı `X-Wafixer-Signature` ve `X-Wafixer-Timestamp`
+başlıklarıyla gönderir; tetikleyici imzayı ham gövdeyle doğrular, tutmayan isteği 401 ile reddeder ve akışı başlatmaz.
 
 ## Tipik Akış: Otomatik Yanıt Botu
 

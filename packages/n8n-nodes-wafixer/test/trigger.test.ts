@@ -5,7 +5,8 @@ import { wafixerLoadOptions } from '../nodes/shared/instanceOptions'
 import { ALL_EVENTS, WafixerTrigger } from '../nodes/WafixerTrigger/WafixerTrigger.node'
 import { startFakeServer, type FakeServer } from '../../wafixer-sdk/src/__tests__/support/fake-server'
 import { lead, messengerCapabilities, metaComment } from '../../wafixer-sdk/src/__tests__/support/fixtures'
-import { hookContext, loadOptionsContext, webhookContext } from './support/context'
+import { signWebhookPayload } from 'wafixer-sdk'
+import { hookContext, loadOptionsContext, webhookContext, type WebhookRequest } from './support/context'
 
 const trigger = new WafixerTrigger()
 const hooks = trigger.webhookMethods.default
@@ -168,5 +169,63 @@ describe('session list', () => {
       'Active - Sayfa (Messenger)',
       'Reconnect Required - Insta (Instagram)',
     ])
+  })
+})
+
+describe('webhook signature verification', () => {
+  const SECRET = 'whsec_n8n-test'
+  const event = {
+    event: 'messages.upsert',
+    instance: 'Klinik',
+    data: { key: { fromMe: false }, message: { conversation: 'merhaba ğüş' } },
+  }
+  const raw = JSON.stringify(event)
+  const params = { events: ['MESSAGES_UPSERT'], options: {} }
+
+  function signedHeaders(body: string, timestamp = Math.floor(Date.now() / 1000), secret = SECRET) {
+    return {
+      'x-wafixer-timestamp': String(timestamp),
+      'x-wafixer-signature': signWebhookPayload(secret, timestamp, body),
+    }
+  }
+
+  async function deliver(request: WebhookRequest, body: IDataObject = event) {
+    const response: { status?: number; body?: unknown } = {}
+    const result = await trigger.webhook.call(webhookContext(params, body, { ...request, response }))
+    return { result, response }
+  }
+
+  it('accepts a correctly signed raw body', async () => {
+    const { result, response } = await deliver({ signingSecret: SECRET, rawBody: Buffer.from(raw), headers: signedHeaders(raw) })
+    expect(response.status).toBeUndefined()
+    expect(result.workflowData?.[0]?.[0]?.json).toEqual(event)
+  })
+
+  it('falls back to the parsed body when n8n kept no raw body', async () => {
+    const { result } = await deliver({ signingSecret: SECRET, headers: signedHeaders(raw) })
+    expect(result.workflowData?.[0]?.[0]?.json).toEqual(event)
+  })
+
+  it('answers 401 for a wrong signature, an old timestamp or a modified body', async () => {
+    const cases: WebhookRequest[] = [
+      { rawBody: Buffer.from(raw), headers: signedHeaders(raw, undefined, 'whsec_baska') },
+      { rawBody: Buffer.from(raw), headers: signedHeaders(raw, Math.floor(Date.now() / 1000) - 600) },
+      { rawBody: Buffer.from(raw.replace('merhaba', 'tamam')), headers: signedHeaders(raw) },
+      { rawBody: Buffer.from(raw), headers: {} },
+    ]
+    for (const request of cases) {
+      const { result, response } = await deliver({ ...request, signingSecret: SECRET })
+      expect(response.status).toBe(401)
+      expect(response.body).toEqual({ error: 'Invalid webhook signature', code: 'INVALID_SIGNATURE' })
+      expect(result).toEqual({ noWebhookResponse: true })
+    }
+  })
+
+  it('does not check signatures when the credential has no secret', async () => {
+    for (const signingSecret of [undefined, '', '  ']) {
+      const { result, response } = await deliver({ signingSecret, headers: {} })
+      expect(response.status).toBeUndefined()
+      expect(result.workflowData?.[0]?.[0]?.json).toEqual(event)
+    }
   })
 })

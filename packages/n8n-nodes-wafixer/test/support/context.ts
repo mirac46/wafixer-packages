@@ -1,3 +1,4 @@
+import type { IncomingHttpHeaders } from 'node:http'
 import type {
   IDataObject,
   IExecuteFunctions,
@@ -64,10 +65,40 @@ export function hookContext(baseUrl: string, params: Params, webhookUrl: string)
   return context as IHookFunctions
 }
 
-export function webhookContext(params: Params, body: IDataObject): IWebhookFunctions {
+type FakeRequest = { headers: IncomingHttpHeaders; rawBody: Buffer | undefined }
+type FakeResponse = { status(code: number): FakeResponse; json(payload?: unknown): FakeResponse }
+
+export type WebhookRequest = {
+  headers?: IncomingHttpHeaders
+  rawBody?: Buffer
+  signingSecret?: string
+  /** Düğümün kendisi yanıt verirse durum kodu buraya yazılır. */
+  response?: { status?: number; body?: unknown }
+}
+
+export function webhookContext(params: Params, body: IDataObject, request: WebhookRequest = {}): IWebhookFunctions {
   const getNodeParameter = (name: string, fallback?: unknown) => readParameter(params, name, fallback)
+  const response: FakeResponse = {
+    status(code) {
+      if (request.response) request.response.status = code
+      return response
+    },
+    json(payload) {
+      if (request.response) request.response.body = payload
+      return response
+    },
+  }
+  const requestObject = (): FakeRequest => ({ headers: request.headers ?? {}, rawBody: request.rawBody })
+  const responseObject = (): FakeResponse => response
   const context: Partial<IWebhookFunctions> = {
     getBodyData: () => body,
+    getCredentials: (async () => ({
+      baseUrl: 'http://unused',
+      apiKey: 'test-key',
+      ...(request.signingSecret === undefined ? {} : { webhookSigningSecret: request.signingSecret }),
+    })) as IWebhookFunctions['getCredentials'],
+    getRequestObject: requestObject as IWebhookFunctions['getRequestObject'],
+    getResponseObject: responseObject as IWebhookFunctions['getResponseObject'],
     getNodeParameter: getNodeParameter as IWebhookFunctions['getNodeParameter'],
     getNode: () => testNode,
     helpers: { returnJsonArray } as IWebhookFunctions['helpers'],

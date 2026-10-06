@@ -30,6 +30,15 @@ export class WafixerApi implements ICredentialType {
       description: 'API key from WAFixer panel → Settings → API Keys (starts with wfx_)',
       required: true,
     },
+    {
+      displayName: 'Webhook Signing Secret',
+      name: 'webhookSigningSecret',
+      type: 'string',
+      typeOptions: { password: true },
+      default: '',
+      description:
+        'Optional. When set, WAFixer Trigger rejects events without a valid X-Wafixer-Signature (HTTP 401). Create it with POST /webhook/signingSecret/{session} (starts with whsec_) and set the same value here. Leave empty to accept unsigned events.',
+    },
   ]
 
   /**

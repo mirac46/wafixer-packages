@@ -2,6 +2,16 @@
 
 Etiketler `n8n-nodes-wafixer@x.y.z`; GitHub Releases notları commit mesajlarından üretilir.
 
+## Yayımlanmamış
+
+Gereken: `wafixer-sdk` webhook imzası içeren sürüm.
+
+### Yeni
+
+- **WAFixer API** credential'ına isteğe bağlı **Webhook Signing Secret** alanı. Doluysa **WAFixer Trigger**
+  `X-Wafixer-Signature` imzasını ham gövdeyle doğrular (5 dakika tolerans); geçersiz istek 401 alır ve akış
+  başlamaz. Alan boşsa davranış değişmez.
+
 ## 0.3.0
 
 Gereken: `wafixer-sdk` `^0.3.0`, wafixer.com 2.3.24.

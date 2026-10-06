@@ -12,12 +12,13 @@ import {
   WEBHOOK_EVENTS,
   Wafixer as WafixerClient,
   isWebhookEventConstant,
+  verifyWebhookSignature,
   webhookEventConstant,
   type WebhookEventConstant,
 } from 'wafixer-sdk'
 import { wafixerLoadOptions } from '../shared/instanceOptions'
 
-type WafixerCredentials = { baseUrl: string; apiKey: string }
+type WafixerCredentials = { baseUrl: string; apiKey: string; webhookSigningSecret?: string }
 
 type EventLabel = { name: string; description: string }
 
@@ -110,6 +111,16 @@ function channelAllowed(channel: string | null | undefined, allowed: string[]): 
   if (!allowed.length || !channel) return true
   if (WHATSAPP_CHANNELS.includes(channel)) return allowed.includes('WHATSAPP')
   return allowed.includes(channel)
+}
+
+/**
+ * İmza n8n'in sakladığı ham gövde üzerinden doğrulanır. Ham gövde yoksa ayrıştırılmış gövde yeniden
+ * serileştirilir; sunucu gövdeyi `JSON.stringify` ile ürettiği için bu dönüşüm aynı baytları verir.
+ */
+function hasValidSignature(context: IWebhookFunctions, secret: string): boolean {
+  const request = context.getRequestObject()
+  const rawBody: Buffer | string = request.rawBody ?? JSON.stringify(context.getBodyData())
+  return verifyWebhookSignature(rawBody, request.headers, secret).valid
 }
 
 function client(creds: WafixerCredentials): WafixerClient {
@@ -264,6 +275,14 @@ export class WafixerTrigger implements INodeType {
   }
 
   async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
+    // Sır kimlik bilgisinde yoksa imza aranmaz; imzasız sunucu sürümleriyle çalışma sürer.
+    const creds = (await this.getCredentials('wafixerApi')) as WafixerCredentials
+    const secret = creds.webhookSigningSecret?.trim()
+    if (secret && !hasValidSignature(this, secret)) {
+      this.getResponseObject().status(401).json({ error: 'Invalid webhook signature', code: 'INVALID_SIGNATURE' })
+      return { noWebhookResponse: true }
+    }
+
     const body = this.getBodyData() as TriggerBody
     const events: string[] = selectedEvents(this.getNodeParameter('events'))
     const options = this.getNodeParameter('options', {}) as {
