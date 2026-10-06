@@ -26,6 +26,14 @@ export interface WebhookSettings {
   createdAt?: string
   updatedAt?: string
   instanceId?: string
+  /** İmza sırrı tanımlıysa teslimatlar `X-Wafixer-Signature` taşır; sırrın değeri hiç dönmez. */
+  hasSigningSecret?: boolean
+}
+
+/** `webhook/signingSecret` yanıtı. `secret` yalnız üretildiği yanıtta bir kez gelir. */
+export interface WebhookSigningSecret {
+  hasSigningSecret: boolean
+  secret?: string
 }
 
 export class Webhook {
@@ -49,6 +57,25 @@ export class Webhook {
           ...(input.headers ? { headers: input.headers } : {}),
         },
       },
+    })
+  }
+
+  /**
+   * İmza sırrını üretir ya da yeniler; eski sır hemen geçersizleşir. Dönen `secret` bir daha
+   * okunamaz, alıcı tarafa (ör. n8n kimlik bilgisi) hemen kaydedin.
+   */
+  public async rotateSigningSecret(instance: string): Promise<Required<WebhookSigningSecret>> {
+    return this.client.request<Required<WebhookSigningSecret>>({
+      method: 'POST',
+      url: `/webhook/signingSecret/${encodeURIComponent(instance)}`,
+    })
+  }
+
+  /** İmza sırrını kaldırır; teslimatlar yeniden imzasız gider. */
+  public async clearSigningSecret(instance: string): Promise<WebhookSigningSecret> {
+    return this.client.request<WebhookSigningSecret>({
+      method: 'DELETE',
+      url: `/webhook/signingSecret/${encodeURIComponent(instance)}`,
     })
   }
 

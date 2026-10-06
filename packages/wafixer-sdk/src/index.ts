@@ -16,7 +16,12 @@ export { Chat } from './resources/chat'
 export { Instances, MetaMessaging } from './resources/instances'
 export { Comments } from './resources/comments'
 export { Leads, type LeadPagesApi, type LeadFormsApi, type LeadItemsApi } from './resources/leads'
-export { Webhook, type WebhookSetInput, type WebhookSettings } from './resources/webhook'
+export {
+  Webhook,
+  type WebhookSetInput,
+  type WebhookSettings,
+  type WebhookSigningSecret,
+} from './resources/webhook'
 
 // Errors
 export {
@@ -227,3 +232,15 @@ export {
   parseWebhookEvent,
   type WebhookEventConstant,
 } from './webhook-events'
+
+export {
+  verifyWebhookSignature,
+  signWebhookPayload,
+  WEBHOOK_SIGNATURE_HEADER,
+  WEBHOOK_TIMESTAMP_HEADER,
+  DEFAULT_WEBHOOK_TOLERANCE_SECONDS,
+  type WebhookSignatureResult,
+  type WebhookSignatureFailure,
+  type WebhookHeaderSource,
+  type VerifyWebhookSignatureOptions,
+} from './webhook-signature'

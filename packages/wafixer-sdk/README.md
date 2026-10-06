@@ -275,7 +275,9 @@ Messenger/Instagram'da desteklenmeyen işlem (`sendList`, `sendLocation`, `sendP
 | Metod | Ne yapar |
 |---|---|
 | `set(instance, { enabled, url, events?, byEvents?, base64?, headers? })` | Oturumun webhook ayarı; `events` `WEBHOOK_EVENTS` adlarından (`COMMENT_RECEIVED`, `LEAD_RECEIVED`…), boş liste = hepsi |
-| `find(instance)` | Kayıtlı ayar |
+| `find(instance)` | Kayıtlı ayar; `hasSigningSecret` imza sırrının tanımlı olup olmadığını söyler (değer dönmez) |
+| `rotateSigningSecret(instance)` | `POST /webhook/signingSecret/{instance}` — imza sırrını üretir ya da yeniler; `secret` yalnız bu yanıtta gelir |
+| `clearSigningSecret(instance)` | `DELETE /webhook/signingSecret/{instance}` — sırrı kaldırır, teslimatlar imzasız gider |
 
 ## Webhook event tipleri
 
@@ -315,6 +317,31 @@ Yorum ve lead olayları: `comment.received`, `comment.updated` (`data.change`: `
 `comment.private_reply.sent` (`data.message`), `lead.received`, `lead.updated` (`data.changes`). Webhook ayarında adları
 `COMMENT_EVENTS` ve `LEAD_EVENTS` sabitlerindedir. Teslim en az bir kezdir; yorumları `comment.id`, lead'leri
 `id` ile tekilleştirin.
+
+## Webhook imzası
+
+Oturuma imza sırrı tanımlanınca (`webhook.rotateSigningSecret`) her teslimat iki başlık taşır:
+`X-Wafixer-Timestamp` (Unix saniye) ve `X-Wafixer-Signature: sha256=<hex>`; imza
+HMAC-SHA256(sır, `timestamp + "." + ham gövde`) değeridir. Sır tanımsız oturumlar eskisi gibi imzasız teslim edilir.
+
+```typescript
+import express from 'express'
+import { verifyWebhookSignature, parseWebhookEvent } from 'wafixer-sdk'
+
+app.post('/wafixer', express.raw({ type: 'application/json' }), (req, res) => {
+  const check = verifyWebhookSignature(req.body, req.headers, process.env.WAFIXER_WEBHOOK_SECRET!)
+  if (!check.valid) return res.status(401).json({ error: 'invalid signature', code: check.reason })
+  const event = parseWebhookEvent(req.body)
+  res.sendStatus(200)
+})
+```
+
+- Doğrulama **ham gövde** ile yapılır; JSON'u ayrıştırıp yeniden serileştirmek baytları değiştirebilir.
+- Zaman damgası varsayılan 5 dakikadan (`toleranceSeconds`) eski ya da ileriyse istek reddedilir.
+- Karşılaştırma sabit zamanlıdır. Başlıklar Node `req.headers`, düz nesne ya da Fetch `Headers` olarak verilebilir.
+- Sonuç `{ valid: true, timestamp }` ya da `{ valid: false, reason }` (`missing_signature`, `missing_timestamp`,
+  `invalid_timestamp`, `timestamp_out_of_range`, `invalid_signature`, `missing_secret`).
+- Sırrı yenilemek eskisini hemen geçersiz kılar; yeni değeri alıcıya kaydetmeden önce yenilemeyin.
 
 ## Hata yönetimi
 

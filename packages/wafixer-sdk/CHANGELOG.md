@@ -3,6 +3,16 @@
 Biçim: sürüm başına Yeni / Değişiklikler / Düzeltmeler. Etiketler `wafixer-sdk@x.y.z`; GitHub Releases notları
 commit mesajlarından üretilir.
 
+## Yayımlanmamış
+
+Sunucu: wafixer.com webhook imzası (`X-Wafixer-Signature`, `X-Wafixer-Timestamp`) içeren sürüm.
+
+### Yeni
+
+- `verifyWebhookSignature(rawBody, headers, secret, options?)`: HMAC-SHA256 imzasını ham gövdeyle, sabit zamanlı
+  karşılaştırma ve 5 dakikalık zaman damgası toleransıyla doğrular; `signWebhookPayload` ve başlık sabitleri.
+- **Webhook:** `rotateSigningSecret`, `clearSigningSecret`; `WebhookSettings.hasSigningSecret`.
+
 ## 0.3.0
 
 Sunucu: wafixer.com 2.3.24, kanal sözleşmesi `channels-v1` 1.1.0 (`ConnectionUpdateData.reconnect` eklendi).
