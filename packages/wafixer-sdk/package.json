@@ -1,6 +1,6 @@
 {
   "name": "wafixer-sdk",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Official WAFixer TypeScript SDK — WhatsApp, Messenger and Instagram messaging, Facebook/Instagram comments, Facebook Lead Ads and typed webhook events.",
   "keywords": [
     "wafixer",

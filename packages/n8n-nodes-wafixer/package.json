@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-wafixer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "n8n community nodes for WAFixer — WhatsApp, Messenger and Instagram messages, Facebook/Instagram comments and Facebook Lead Ads; trigger on messages, comments, leads and connection changes. Powered by wafixer-sdk.",
   "keywords": [
     "n8n-community-node-package",
@@ -51,7 +51,7 @@
     ]
   },
   "dependencies": {
-    "wafixer-sdk": "^0.2.0"
+    "wafixer-sdk": "^0.3.0"
   },
   "peerDependencies": {
     "n8n-workflow": "*"

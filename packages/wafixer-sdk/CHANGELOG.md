@@ -3,6 +3,26 @@
 Biçim: sürüm başına Yeni / Değişiklikler / Düzeltmeler. Etiketler `wafixer-sdk@x.y.z`; GitHub Releases notları
 commit mesajlarından üretilir.
 
+## 0.3.0
+
+Sunucu: wafixer.com 2.3.24, kanal sözleşmesi `channels-v1` 1.1.0 (`ConnectionUpdateData.reconnect` eklendi).
+
+### Yeni
+
+- **Chat:** `checkNumbers`, `fetchProfilePictureUrl`, `updateBlockStatus`, `findMessages`, `findChats`,
+  `findChatByRemoteJid`, `findContacts`.
+- **Messages:** `sendStatus` (WhatsApp durumu).
+- **Instances:** `restart`; `connectionState` yanıtında `source`, `disconnectionReasonCode`, `disconnectionAt`,
+  `reconnect`.
+- **Olaylar:** `messages.edited`, `send.message.update`, `qrcode.updated`, `status.instance`, `logout.instance`,
+  `remove.instance`, `labels.edit`, `labels.association` tipleri; `connection.update` için `reconnect`
+  (`SessionReconnect`: `phase`, `attempt`, `maxAttempts`, `nextAttemptAt`).
+
+### Değişiklikler
+
+- `parseWebhookEvent` `logout.instance` ve `remove.instance` olaylarını `data: null` ile kabul eder.
+- OpenAPI kopyası ve üretilen tipler wafixer.com 2.3.24 belgesiyle eşitlendi.
+
 ## 0.2.0
 
 Sunucu: wafixer.com 2.3.12, kanal sözleşmesi `channels-v1` 1.1.0 (yorumlar 1.1.0).

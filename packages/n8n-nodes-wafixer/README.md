@@ -24,7 +24,8 @@ n8n'i yeniden başlat. Node panelinde "WAFixer" ve "WAFixer Trigger" görünecek
 ## Credential ekleme
 
 1. n8n → **Credentials** → **New** → **WAFixer API**
-2. **Base URL:** `https://wafixer.com` (kendi WAFixer URL'in)
+2. **Base URL:** `https://wafixer.com` (varsayılan). WAFixer sana başka bir adres vermediyse değiştirme;
+   `api.wafixer.com` henüz genel kullanımda değil.
 3. **API Key:** Panel → **Ayarlar → API Anahtarları** sekmesinden **Yeni Anahtar Oluştur** ile üretilen `wfx_...` ile başlayan anahtar
 4. **Test** butonuyla doğrula → ✓ yeşil
 5. **Save**
@@ -34,9 +35,10 @@ n8n'i yeniden başlat. Node panelinde "WAFixer" ve "WAFixer Trigger" görünecek
 
 ## Node 1: WAFixer (Action)
 
-Üç kaynak (**Resource**): Message, Comment, Lead. Eski akışlar değişmeden **Message** kaynağında çalışır.
+Beş kaynak (**Resource**): Message, Chat, Comment, Lead, Session. Eski akışlar değişmeden **Message** kaynağında
+çalışır.
 
-### Message — 13 operation
+### Message — 19 operation
 
 | Operation | Ne yapar |
 |---|---|
@@ -53,6 +55,12 @@ n8n'i yeniden başlat. Node panelinde "WAFixer" ve "WAFixer Trigger" görünecek
 | **Reply to Message** | Trigger event'inden gelen mesaja alıntılı yanıt (en sık kullanım) |
 | **Mark as Read** | Mesajları okundu işaretle |
 | **Send Presence** | "Yazıyor / kaydediyor / online" |
+| **Send Video Note (PTV)** | Yuvarlak kısa video |
+| **Send Template** | Meta'da onaylı şablon; yalnız WhatsApp Cloud API oturumu, 24 saat penceresi dışında konuşma açar. **Components (JSON)** Meta biçiminde değişkenler |
+| **Post Status** | WhatsApp durumu (story): metin, resim, video, ses; tüm kişilere ya da seçilen numaralara. Yalnız QR oturumu |
+| **Edit Message** | Gönderdiğin mesajın metnini değiştirir (WhatsApp, 15 dakika içinde) |
+| **Delete for Everyone** | Gönderilen mesajı herkes için siler |
+| **Download Media** | Trigger'dan gelen mesajın medyasını base64 indirir (`base64`, `mimetype`) |
 
 **Messenger / Instagram Options** (Send Text, Reply to Message):
 - **Quick Replies** — mesajın altında en çok 13 düğme; dokunulan düğme trigger'da
@@ -88,6 +96,32 @@ Facebook yorumları Sayfanın Messenger oturumunda, Instagram yorumları Instagr
 
 **Comment ID** ve **Lead ID** alanları varsayılan olarak trigger olayından ya da listelenen öğeden dolar.
 
+### Chat — sohbetler, kişiler, kayıtlı mesajlar
+
+| Operation | Ne yapar |
+|---|---|
+| **Check WhatsApp Numbers** | Virgülle ayrılmış numaraların WhatsApp hesabı var mı; numara başına bir öğe (`exists`, `jid`) |
+| **Get Many Messages** | Bir sohbetin kayıtlı mesajları, sayfa sayfa (**Limit**, **Page**); her öğede `_page` (`total`, `pages`, `currentPage`) |
+| **Get Chat** | Tek sohbet (**Remote JID**) |
+| **Get Many Chats** | Oturumun sohbetleri |
+| **Get Many Contacts** | Kayıtlı kişiler; filtre: Name, Remote JID |
+| **Get Profile Picture** | Kişinin profil resmi adresi; gizliyse `null` |
+| **Block or Unblock** | Kişiyi engeller ya da engeli kaldırır |
+| **Archive or Unarchive** | Sohbeti arşivler / listeye geri alır |
+| **Mark as Unread** | Sohbeti okunmamış işaretler |
+
+**Remote JID** varsayılan olarak trigger'daki `data.key.remoteJid`'dir: WhatsApp `905...@s.whatsapp.net`, Messenger
+`PSID@messenger`, Instagram `IGSID@instagram`. Archive ve Mark as Unread sohbetin son mesajının anahtarını ister;
+o da trigger'dan gelir.
+
+### Session — oturumlar
+
+| Operation | Ne yapar |
+|---|---|
+| **Get Many** | API key'in eriştiği oturumlar, kanal ve bağlantı durumuyla (Session alanı gizlenir) |
+| **Get Connection State** | `open`, `connecting`, `close`; QR oturumunda otomatik yeniden bağlanma durumu `reconnect` (`phase`: `reconnecting` ya da `awaiting_qr`, `attempt`, `maxAttempts`, `nextAttemptAt`) |
+| **Restart** | Oturumu yeniden başlatır, otomatik deneme sayacını sıfırlar; eşlenmemiş QR oturumunda yeni QR üretir |
+
 **Session** → credential'daki API key ile erişilebilen WAFixer oturumları listeden seçilir; Messenger ve Instagram
 oturumlarının yanında kanal yazar (`Active - Klinik (Messenger)`). `Active` oturumlar çalışmaya hazırdır;
 `QR Required` ve `Reconnect Required` oturumlar önce WAFixer panelinden yeniden bağlanmalıdır.
@@ -101,12 +135,22 @@ Bir WAFixer instance'ında belirli olaylar gerçekleştiğinde akışı **otomat
 - Outgoing Message (`send.message`) — senin gönderdiğin mesaj
 - Message Status (`messages.update`) — okundu / teslim edildi
 - Connection State (`connection.update`) — bağlandı / koptu; Messenger/Instagram'da `data.reason`:
-  `token_invalid`, `subscription_lost`, `revoked`
+  `token_invalid`, `subscription_lost`, `revoked`. QR oturumunda `data.reconnect`: `reconnecting` (sonraki deneme
+  `nextAttemptAt`'te) ya da `awaiting_qr` (eşlenmemiş oturumda denemeler bitti, QR okutulmalı)
+- QR Code Updated (`qrcode.updated`) — yeni QR (`data.qrcode.base64`) ya da QR deneme sınırı doldu
+- Message Edited (`messages.edited`), Outgoing Message Edited (`send.message.update`)
+- Session Status (`status.instance`), Session Logged Out (`logout.instance`), Session Deleted (`remove.instance`;
+  bu ikisinde `data` `null`)
+- Label Changed / Label Assigned (`labels.*`) — WhatsApp Business etiketleri
 - Comment Received / Updated / Removed / Reply Sent / Private Reply Sent (`comment.*`) — Facebook ve Instagram
   yorumları; Removed `data.reason` (`deleted_by_owner`, `removed_on_meta`) taşır. Private Reply Sent ile aynı mesaj
   Outgoing Message olarak da gelir; `data.message.id` ile tekilleştir.
 - Lead Received / Updated (`lead.*`) — Facebook Lead Ads
-- Yeni kişi, yeni grup, üye ekle/çıkar, çağrı, vb.
+- Yeni kişi, yeni grup, üye ekle/çıkar, çağrı, Typebot ve sunucunun kabul ettiği diğer olaylar; liste
+  `wafixer-sdk`'daki `WEBHOOK_EVENTS`'ten gelir.
+
+Hiç olay seçilmezse geçmiş eşitleme olayları (Message History Synced, Contacts Synced, Chats Synced) dışındaki
+bütün olaylar kaydedilir; o üçü çok büyük gövde taşır, yalnız açıkça seçilince gelir.
 
 **Options:**
 - **Channels** — yalnız seçilen kanalların olayları (WhatsApp, Messenger, Instagram); boşsa hepsi

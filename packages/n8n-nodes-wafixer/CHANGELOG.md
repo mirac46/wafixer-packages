@@ -2,6 +2,29 @@
 
 Etiketler `n8n-nodes-wafixer@x.y.z`; GitHub Releases notları commit mesajlarından üretilir.
 
+## 0.3.0
+
+Gereken: `wafixer-sdk` `^0.3.0`, wafixer.com 2.3.24.
+
+### Yeni
+
+- **Chat** kaynağı: Check WhatsApp Numbers, Get Many Messages (sayfalı), Get Chat, Get Many Chats, Get Many Contacts,
+  Get Profile Picture, Block or Unblock, Archive or Unarchive, Mark as Unread.
+- **Session** kaynağı: Get Many (oturum listesi), Get Connection State (QR oturumunda otomatik yeniden bağlanma
+  durumu), Restart.
+- **Message:** Send Video Note (PTV), Send Template (WhatsApp Cloud API), Post Status, Edit Message, Delete for
+  Everyone, Download Media.
+- **WAFixer Trigger:** sunucunun kabul ettiği bütün olaylar seçilebilir; yeni olanlar QR Code Updated, Message
+  Edited, Outgoing Message Edited, Session Status / Logged Out / Deleted, Label Changed / Assigned, Typebot, Server
+  Started, Session Created / Removed ve geçmiş eşitleme olayları. Liste SDK'daki `WEBHOOK_EVENTS`'ten türetilir.
+
+### Değişiklikler
+
+- Hiç olay seçilmezse geçmiş eşitleme olayları (Message History Synced, Contacts Synced, Chats Synced) dışındaki
+  bütün olaylar kaydedilir.
+- Message işlemleri ada göre sıralı.
+- Kimlik bilgisinde Base URL açıklaması: varsayılan `https://wafixer.com`.
+
 ## 0.2.0
 
 Gereken: `wafixer-sdk` `^0.2.0`, wafixer.com 2.3.12.

@@ -197,6 +197,7 @@ await wa.leads.forms.import('Klinik', forms[0].formId)
 | `sendContact(instance, input)` | Kişi kartı |
 | `sendReaction(instance, input)` | Bir mesaja emoji reaksiyon |
 | `sendTemplate(instance, input)` | Meta Business template (Cloud API) |
+| `sendStatus(instance, input)` | WhatsApp durumu (story); `allContacts` ya da `statusJidList`, yalnız QR oturumu |
 | `deleteForEveryone(instance, input)` | Mesajı herkesten sil |
 | `updateMessage(instance, input)` | Bir mesajın metnini düzenle |
 | `downloadMedia(event)` | Webhook event'indeki medyayı base64 olarak indir |
@@ -216,6 +217,12 @@ Messenger/Instagram'da desteklenmeyen işlem (`sendList`, `sendLocation`, `sendP
 | `updatePresence(instance, input)` | Beklemeden presence gönderir; `presence` boş ve `subscribe: true` ise yalnız karşı tarafın presence akışına abone olur |
 | `archiveChat(instance, input)` | Sohbet arşivle |
 | `markChatUnread(instance, input)` | Sohbeti okunmamış işaretle |
+| `checkNumbers(instance, { numbers })` | Numaraların WhatsApp hesabı var mı (`exists`, `jid`) |
+| `fetchProfilePictureUrl(instance, number)` | Profil resmi adresi; gizliyse `null` |
+| `updateBlockStatus(instance, { number, status })` | `block` / `unblock` |
+| `findMessages(instance, { where?, page?, offset? })` | Kayıtlı mesajlar, sayfalı: `{ messages: { total, pages, currentPage, records } }` |
+| `findChats(instance, query?)` / `findChatByRemoteJid(instance, remoteJid)` | Sohbetler / tek sohbet |
+| `findContacts(instance, { where? })` | Kayıtlı kişiler (`id`, `remoteJid`, `pushName`) |
 
 ### Instances
 
@@ -223,7 +230,8 @@ Messenger/Instagram'da desteklenmeyen işlem (`sendList`, `sendLocation`, `sendP
 |---|---|
 | `list()` | API key'in erişebildiği oturumlar; `channel` ve `capabilities` dahil |
 | `get({ instanceName, instanceId, number })` | Belirli oturumu getirir |
-| `connectionState(instance)` | Canlı bağlantı durumunu döndürür |
+| `connectionState(instance)` | Bağlantı durumu; `source` (`live` / `database`), QR oturumunda `reconnect` |
+| `restart(instance)` | Oturumu yeniden başlatır, otomatik yeniden bağlanma sayacını sıfırlar |
 | `connect(instance, number?)` | Kapalı QR oturumunda bağlantı/QR akışını başlatır |
 | `logout(instance)` / `delete(instance)` | Oturumu kapatır / siler |
 | `metaMessagingSession({ channel, returnUrl })` | Messenger/Instagram için barındırılan bağlantı adresi |
@@ -297,7 +305,12 @@ if (event) handle(event)
 if (isWebhookEvent(req.body, 'lead.updated')) console.log(req.body.data.changes)
 ```
 
-Yeni olaylar: `comment.received`, `comment.updated` (`data.change`: `edited`, `hidden`, `unhidden`), `comment.removed`
+Oturum olayları: `connection.update` (`data.reconnect`: QR oturumunun otomatik yeniden bağlanma durumu,
+`SessionReconnect`), `qrcode.updated`, `status.instance`, `logout.instance` ve `remove.instance` (`data: null`);
+mesaj düzenleme `messages.edited`, `send.message.update`; WhatsApp Business etiketleri `labels.edit`,
+`labels.association`.
+
+Yorum ve lead olayları: `comment.received`, `comment.updated` (`data.change`: `edited`, `hidden`, `unhidden`), `comment.removed`
 (`data.reason`: `deleted_by_owner`, `removed_on_meta`), `comment.reply.sent` (`data.comment.sentByApi`),
 `comment.private_reply.sent` (`data.message`), `lead.received`, `lead.updated` (`data.changes`). Webhook ayarında adları
 `COMMENT_EVENTS` ve `LEAD_EVENTS` sabitlerindedir. Teslim en az bir kezdir; yorumları `comment.id`, lead'leri
