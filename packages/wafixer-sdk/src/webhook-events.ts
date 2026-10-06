@@ -76,9 +76,17 @@ export function isWebhookEventConstant(value: string): value is WebhookEventCons
 const KNOWN_EVENT_NAMES: ReadonlySet<string> = new Set<WebhookEventName>([
   'messages.upsert',
   'messages.update',
+  'messages.edited',
   'messages.delete',
   'send.message',
+  'send.message.update',
   'connection.update',
+  'qrcode.updated',
+  'status.instance',
+  'logout.instance',
+  'remove.instance',
+  'labels.edit',
+  'labels.association',
   'presence.update',
   'contacts.upsert',
   'contacts.update',
@@ -95,6 +103,9 @@ const KNOWN_EVENT_NAMES: ReadonlySet<string> = new Set<WebhookEventName>([
   'lead.updated',
 ])
 
+// Oturum kapatma ve silme olayları `data: null` taşır.
+const NULL_DATA_EVENT_NAMES: ReadonlySet<string> = new Set<WebhookEventName>(['logout.instance', 'remove.instance'])
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -107,7 +118,7 @@ export function isWafixerWebhookEvent(payload: unknown): payload is AnyWebhookEv
     KNOWN_EVENT_NAMES.has(payload.event) &&
     typeof payload.instance === 'string' &&
     payload.data !== undefined &&
-    payload.data !== null
+    (payload.data !== null || NULL_DATA_EVENT_NAMES.has(payload.event))
   )
 }
 

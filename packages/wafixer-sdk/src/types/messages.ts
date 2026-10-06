@@ -140,6 +140,21 @@ export interface SendTemplateInput extends BaseSendInput {
   components: unknown
 }
 
+// ────────────────── STATUS (WhatsApp durum paylaşımı) ──────────────────
+export interface SendStatusInput {
+  type: 'text' | 'image' | 'audio' | 'video'
+  /** Metin durumunda metnin kendisi, medyada URL ya da base64. */
+  content: string
+  caption?: string
+  /** Metin durumunun arka plan rengi, ör. `#008000`. */
+  backgroundColor?: string
+  /** Metin durumunun yazı tipi, 0-5. */
+  font?: number
+  /** Durumu görecek numaralar; `allContacts: true` ise yok sayılır. */
+  statusJidList?: string[]
+  allContacts?: boolean
+}
+
 // ────────────────── PRESENCE ──────────────────
 export interface SendPresenceInput {
   number: string
@@ -189,4 +204,55 @@ export interface ArchiveChatInput {
 export interface MarkChatUnreadInput {
   chat: string
   lastMessage: { key: MessageKey }
+}
+
+// ────────────────── NUMBER CHECK ──────────────────
+export interface CheckNumbersInput {
+  /** Ülke koduyla, `+` olmadan. */
+  numbers: string[]
+}
+
+export interface WhatsAppNumberResult {
+  jid: string
+  exists: boolean
+  number: string
+  name?: string
+  lid?: string
+}
+
+// ────────────────── PROFILE / BLOCK ──────────────────
+export interface ProfilePictureResponse {
+  wuid: string
+  /** Profil resmi gizliyse ya da yoksa `null`. */
+  profilePictureUrl: string | null
+}
+
+export interface UpdateBlockStatusInput {
+  number: string
+  status: 'block' | 'unblock'
+}
+
+// ────────────────── FIND (contacts, chats, messages) ──────────────────
+export interface FindPagination {
+  /** Sayfa başına kayıt. */
+  offset?: number
+  /** 1'den başlar. */
+  page?: number
+}
+
+export interface FindContactsInput extends FindPagination {
+  where?: { id?: string; remoteJid?: string; pushName?: string }
+}
+
+export interface FindChatsInput extends FindPagination {
+  where?: { remoteJid?: string }
+}
+
+export interface FindMessagesInput extends FindPagination {
+  where?: {
+    key?: Partial<MessageKey>
+    messageType?: string
+  }
+  /** `true` ise yanıta toplam kayıt sayısı eklenir. */
+  includeTotal?: boolean
 }

@@ -1,10 +1,17 @@
 import type { Wafixer } from '../client'
 import type {
   ArchiveChatInput,
+  CheckNumbersInput,
+  FindChatsInput,
+  FindContactsInput,
+  FindMessagesInput,
   MarkChatUnreadInput,
   MarkMessagesAsReadInput,
+  ProfilePictureResponse,
   SendPresenceInput,
+  UpdateBlockStatusInput,
   UpdatePresenceInput,
+  WhatsAppNumberResult,
 } from '../types/messages'
 import type { MessageData } from '../types/events'
 
@@ -14,6 +21,8 @@ import type { MessageData } from '../types/events'
  *  - Yazıyor / kaydediyor / online göstergesi (presence)
  *  - Sohbet arşivle
  *  - Sohbeti okunmamış işaretle
+ *  - Numara kontrolü, profil resmi, engelleme
+ *  - Kayıtlı kişi, sohbet ve mesajları arama
  */
 export class Chat {
   constructor(private readonly client: Wafixer) {}
@@ -97,6 +106,62 @@ export class Chat {
       url: this.path(instance, 'archiveChat'),
       data: input,
     })
+  }
+
+  /**
+   * Numaraların WhatsApp'ta kayıtlı olup olmadığını sorar; yalnız WhatsApp oturumlarında anlamlıdır.
+   */
+  public async checkNumbers(instance: string, input: CheckNumbersInput): Promise<WhatsAppNumberResult[]> {
+    return this.client.request<WhatsAppNumberResult[]>({
+      method: 'POST',
+      url: this.path(instance, 'whatsappNumbers'),
+      data: input,
+    })
+  }
+
+  /** Kişinin profil resmi adresi; gizli ya da yoksa `profilePictureUrl: null`. */
+  public async fetchProfilePictureUrl(instance: string, number: string): Promise<ProfilePictureResponse> {
+    return this.client.request<ProfilePictureResponse>({
+      method: 'POST',
+      url: this.path(instance, 'fetchProfilePictureUrl'),
+      data: { number },
+    })
+  }
+
+  /** Kişiyi engeller ya da engelini kaldırır. */
+  public async updateBlockStatus<T = unknown>(instance: string, input: UpdateBlockStatusInput): Promise<T> {
+    return this.client.request<T>({
+      method: 'POST',
+      url: this.path(instance, 'updateBlockStatus'),
+      data: input,
+    })
+  }
+
+  /** Oturumun kayıtlı kişileri; `where` boşsa hepsi. */
+  public async findContacts<T = unknown[]>(instance: string, input: FindContactsInput = {}): Promise<T> {
+    return this.client.request<T>({ method: 'POST', url: this.path(instance, 'findContacts'), data: input })
+  }
+
+  /** Oturumun sohbetleri, son mesaja göre sıralı. */
+  public async findChats<T = unknown[]>(instance: string, input: FindChatsInput = {}): Promise<T> {
+    return this.client.request<T>({ method: 'POST', url: this.path(instance, 'findChats'), data: input })
+  }
+
+  /** Tek sohbet; `remoteJid` webhook olayındaki `data.key.remoteJid` değeridir. */
+  public async findChatByRemoteJid<T = unknown>(instance: string, remoteJid: string): Promise<T> {
+    return this.client.request<T>({
+      method: 'GET',
+      url: this.path(instance, 'findChatByRemoteJid'),
+      params: { remoteJid },
+    })
+  }
+
+  /**
+   * Kayıtlı mesajlar, sayfalı. Bir sohbetin geçmişi için `where.key.remoteJid` verin.
+   * Yanıt `{ messages: { total, pages, currentPage, records } }` biçimindedir.
+   */
+  public async findMessages<T = unknown>(instance: string, input: FindMessagesInput = {}): Promise<T> {
+    return this.client.request<T>({ method: 'POST', url: this.path(instance, 'findMessages'), data: input })
   }
 
   /** Sohbeti okunmamış olarak işaretle. */

@@ -1,4 +1,4 @@
-import type { ChannelCapabilities, WafixerChannel } from './contracts'
+import type { ChannelCapabilities, SessionReconnect, WafixerChannel } from './contracts'
 
 export type WafixerInstanceStatus = 'open' | 'connecting' | 'close' | string
 
@@ -38,6 +38,12 @@ export interface WafixerConnectionStateResponse {
   instance: {
     instanceName: string
     state?: WafixerInstanceStatus
+    /** `live`: çalışan oturumdan, `database`: sunucuda yüklü değil, son kayıtlı durum. */
+    source?: 'live' | 'database'
+    disconnectionReasonCode?: number | null
+    disconnectionAt?: string | null
+    /** QR oturumunun otomatik yeniden bağlanma durumu; deneme yoksa `null`. */
+    reconnect?: SessionReconnect | null
   }
 }
 

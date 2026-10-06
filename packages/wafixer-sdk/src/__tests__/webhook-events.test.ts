@@ -131,7 +131,7 @@ describe('parseWebhookEvent', () => {
     expect(parseWebhookEvent('{bozuk')).toBeNull()
     expect(parseWebhookEvent(null)).toBeNull()
     expect(parseWebhookEvent([])).toBeNull()
-    expect(parseWebhookEvent({ ...envelope, event: 'qrcode.updated', data: {} })).toBeNull()
+    expect(parseWebhookEvent({ ...envelope, event: 'messages.set', data: {} })).toBeNull()
     expect(parseWebhookEvent({ event: 'lead.received', data: lead })).toBeNull()
     expect(parseWebhookEvent({ event: 'lead.received', instance: 'Klinik', data: null })).toBeNull()
   })

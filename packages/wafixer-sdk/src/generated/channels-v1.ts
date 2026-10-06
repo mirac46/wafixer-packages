@@ -1208,6 +1208,13 @@ export interface components {
             statusReason?: number;
             /** @enum {string} */
             reason?: "token_invalid" | "subscription_lost" | "revoked";
+            reconnect?: {
+                /** @enum {string} */
+                phase: "reconnecting" | "awaiting_qr";
+                attempt: number;
+                maxAttempts: number | null;
+                nextAttemptAt: string | null;
+            } | null;
         };
         /** @enum {string} */
         MetaCommentPlatform: "FACEBOOK" | "INSTAGRAM";

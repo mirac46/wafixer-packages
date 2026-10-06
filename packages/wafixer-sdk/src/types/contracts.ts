@@ -20,6 +20,12 @@ export type SendResponse = Schemas['SendResponse']
 export type ReplyWindow = Schemas['ReplyWindow']
 export type CredentialStatus = Schemas['CredentialStatus']
 export type ConnectionUpdateReason = NonNullable<Schemas['ConnectionUpdateData']['reason']>
+/**
+ * QR oturumunun otomatik yeniden bağlanma durumu. `reconnecting`: sonraki deneme zamanlandı;
+ * `awaiting_qr`: eşlenmemiş oturumda denemeler bitti, QR okutulana kadar bağlanılmaz.
+ * Eşli oturumda `maxAttempts` sınırsızdır (`null`).
+ */
+export type SessionReconnect = NonNullable<Schemas['ConnectionUpdateData']['reconnect']>
 
 // ────────────────── Messenger / Instagram bağlantısı ──────────────────
 

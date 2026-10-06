@@ -136,6 +136,14 @@ export class Instances {
     })
   }
 
+  /**
+   * Oturumu yeniden başlatır: QR oturumunda soket kapanıp açılır, otomatik yeniden bağlanma sayacı
+   * sıfırlanır. Eşlenmemiş oturumda yeni QR üretilir (`qrcode.updated`).
+   */
+  public async restart<T = unknown>(instance: string): Promise<T> {
+    return this.client.request<T>({ method: 'POST', url: instancePath('restart', instance) })
+  }
+
   /** Oturumun bağlantısını kapatır; kapalı oturumda sunucu 400 döner. */
   public async logout(instance: string): Promise<WafixerActionResponse> {
     return this.client.request<WafixerActionResponse>({ method: 'DELETE', url: instancePath('logout', instance) })

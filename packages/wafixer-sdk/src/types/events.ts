@@ -8,6 +8,7 @@ import type { MessageKey } from './common'
 import type {
   ConnectionUpdateReason,
   LeadWebhookEnvelope,
+  SessionReconnect,
   MetaCommentEventData,
   MetaCommentPrivateReplyEventData,
   MetaCommentReplyEventData,
@@ -17,9 +18,17 @@ import type {
 export type WebhookEventName =
   | 'messages.upsert'
   | 'messages.update'
+  | 'messages.edited'
   | 'messages.delete'
   | 'send.message'
+  | 'send.message.update'
   | 'connection.update'
+  | 'qrcode.updated'
+  | 'status.instance'
+  | 'logout.instance'
+  | 'remove.instance'
+  | 'labels.edit'
+  | 'labels.association'
   | 'presence.update'
   | 'contacts.upsert'
   | 'contacts.update'
@@ -94,6 +103,10 @@ export type MessagesDeleteEvent = WebhookEnvelope<
   { id: string; remoteJid: string; fromMe: boolean }
 >
 export type SendMessageEvent = WebhookEnvelope<'send.message', MessageData>
+/** Karşı taraf bir mesajı düzenledi (WhatsApp). */
+export type MessagesEditedEvent = WebhookEnvelope<'messages.edited', MessageData>
+/** Gönderdiğiniz bir mesaj `chat.updateMessage` ile düzenlendi. */
+export type SendMessageUpdateEvent = WebhookEnvelope<'send.message.update', MessageData>
 
 // ────────────────── CONNECTION EVENTS ──────────────────
 
@@ -103,9 +116,53 @@ export interface ConnectionData {
   statusReason?: number
   /** Messenger/Instagram: `token_invalid`, `subscription_lost`, `revoked`. */
   reason?: ConnectionUpdateReason
+  /** QR oturumu: otomatik yeniden bağlanma durumu; deneme yoksa `null`. */
+  reconnect?: SessionReconnect | null
 }
 
 export type ConnectionUpdateEvent = WebhookEnvelope<'connection.update', ConnectionData>
+
+/**
+ * QR oturumunda yeni QR kodu (`qrcode`) ya da QR deneme sınırı doldu bildirimi
+ * (`message` + `statusCode`); ikincisinde oturum `connect` ile yeniden başlatılır.
+ */
+export type QrCodeData =
+  | { qrcode: { instance: string; pairingCode?: string | null; code: string; base64: string } }
+  | { message: string; statusCode: number }
+
+export type QrCodeUpdatedEvent = WebhookEnvelope<'qrcode.updated', QrCodeData>
+
+export interface InstanceStatusData {
+  instance: string
+  status: string
+  disconnectionAt?: string
+  disconnectionReasonCode?: number
+  /** Bağlantı kopma nesnesinin JSON metni. */
+  disconnectionObject?: string
+}
+
+export type InstanceStatusEvent = WebhookEnvelope<'status.instance', InstanceStatusData>
+/** Oturum kapatıldı (`instance/logout` ya da WhatsApp'tan çıkış). */
+export type LogoutInstanceEvent = WebhookEnvelope<'logout.instance', null>
+/** Oturum silindi. */
+export type RemoveInstanceEvent = WebhookEnvelope<'remove.instance', null>
+
+// ────────────────── LABELS (WhatsApp Business) ──────────────────
+
+export interface LabelData {
+  instance: string
+  id: string
+  name: string
+  color: number
+  deleted?: boolean
+  predefinedId?: string
+}
+
+export type LabelsEditEvent = WebhookEnvelope<'labels.edit', LabelData>
+export type LabelsAssociationEvent = WebhookEnvelope<
+  'labels.association',
+  { instance: string; type: 'add' | 'remove'; chatId: string; labelId: string }
+>
 
 // ────────────────── PRESENCE / TYPING ──────────────────
 
@@ -197,7 +254,15 @@ export type AnyWebhookEvent =
   | MessagesUpdateEvent
   | MessagesDeleteEvent
   | SendMessageEvent
+  | MessagesEditedEvent
+  | SendMessageUpdateEvent
   | ConnectionUpdateEvent
+  | QrCodeUpdatedEvent
+  | InstanceStatusEvent
+  | LogoutInstanceEvent
+  | RemoveInstanceEvent
+  | LabelsEditEvent
+  | LabelsAssociationEvent
   | PresenceUpdateEvent
   | ContactsUpsertEvent
   | ContactsUpdateEvent

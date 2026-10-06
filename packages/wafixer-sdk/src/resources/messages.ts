@@ -10,6 +10,7 @@ import type {
   SendPtvInput,
   SendReactionInput,
   SendStickerInput,
+  SendStatusInput,
   SendTemplateInput,
   SendTextInput,
   SendAudioInput,
@@ -157,6 +158,15 @@ export class Messages {
     return this.client.request<T>({
       method: 'POST',
       url: this.path(instance, 'sendTemplate'),
+      data: input,
+    })
+  }
+
+  /** WhatsApp durumu (story) paylaşır; yalnız QR oturumlarında. */
+  public async sendStatus<T = unknown>(instance: string, input: SendStatusInput): Promise<T> {
+    return this.client.request<T>({
+      method: 'POST',
+      url: this.path(instance, 'sendStatus'),
       data: input,
     })
   }
