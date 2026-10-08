@@ -2,22 +2,15 @@
 
 Etiketler `n8n-nodes-wafixer@x.y.z`; GitHub Releases notları commit mesajlarından üretilir.
 
-## Yayımlanmamış
+## 0.3.0
 
-Gereken: `wafixer-sdk` webhook imzası içeren sürüm.
+Gereken: `wafixer-sdk` `^0.3.0`, wafixer.com 2.3.24; webhook imzası doğrulaması için imza gönderen wafixer.com sürümü.
 
 ### Yeni
 
 - **WAFixer API** credential'ına isteğe bağlı **Webhook Signing Secret** alanı. Doluysa **WAFixer Trigger**
   `X-Wafixer-Signature` imzasını ham gövdeyle doğrular (5 dakika tolerans); geçersiz istek 401 alır ve akış
   başlamaz. Alan boşsa davranış değişmez.
-
-## 0.3.0
-
-Gereken: `wafixer-sdk` `^0.3.0`, wafixer.com 2.3.24.
-
-### Yeni
-
 - **Chat** kaynağı: Check WhatsApp Numbers, Get Many Messages (sayfalı), Get Chat, Get Many Chats, Get Many Contacts,
   Get Profile Picture, Block or Unblock, Archive or Unarchive, Mark as Unread.
 - **Session** kaynağı: Get Many (oturum listesi), Get Connection State (QR oturumunda otomatik yeniden bağlanma

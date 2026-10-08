@@ -3,22 +3,16 @@
 Biçim: sürüm başına Yeni / Değişiklikler / Düzeltmeler. Etiketler `wafixer-sdk@x.y.z`; GitHub Releases notları
 commit mesajlarından üretilir.
 
-## Yayımlanmamış
+## 0.3.0
 
-Sunucu: wafixer.com webhook imzası (`X-Wafixer-Signature`, `X-Wafixer-Timestamp`) içeren sürüm.
+Sunucu: wafixer.com 2.3.24, kanal sözleşmesi `channels-v1` 1.1.0 (`ConnectionUpdateData.reconnect` eklendi). Webhook imzası
+uçları (`rotateSigningSecret`, `clearSigningSecret`) ve `X-Wafixer-Signature` başlığı, imza özelliğini içeren sunucu sürümünü ister.
 
 ### Yeni
 
 - `verifyWebhookSignature(rawBody, headers, secret, options?)`: HMAC-SHA256 imzasını ham gövdeyle, sabit zamanlı
   karşılaştırma ve 5 dakikalık zaman damgası toleransıyla doğrular; `signWebhookPayload` ve başlık sabitleri.
 - **Webhook:** `rotateSigningSecret`, `clearSigningSecret`; `WebhookSettings.hasSigningSecret`.
-
-## 0.3.0
-
-Sunucu: wafixer.com 2.3.24, kanal sözleşmesi `channels-v1` 1.1.0 (`ConnectionUpdateData.reconnect` eklendi).
-
-### Yeni
-
 - **Chat:** `checkNumbers`, `fetchProfilePictureUrl`, `updateBlockStatus`, `findMessages`, `findChats`,
   `findChatByRemoteJid`, `findContacts`.
 - **Messages:** `sendStatus` (WhatsApp durumu).
